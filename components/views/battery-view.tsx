@@ -129,7 +129,7 @@ export function BatteryView() {
                     </p>
                   </div>
                 </div>
-                <div className="rounded-xl border border-line-soft bg-canvas-deep/40 p-4">
+                <div className="rounded-xl border border-line-soft bg-surface-2/60 p-4">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-faint">
                     Live level
                   </p>
@@ -178,7 +178,7 @@ export function BatteryView() {
                     <dt className="text-[10px] uppercase tracking-[0.13em] text-faint">Time to full</dt>
                     <dd className="text-[13px] font-medium text-fg">
                       {live?.charging
-                        ? (formatSeconds(live.chargingTime) ?? "Calculating…")
+                        ? (formatSeconds(live.chargingTime) ?? "Not reported")
                         : "—"}
                     </dd>
                   </div>
@@ -186,14 +186,14 @@ export function BatteryView() {
                     <dt className="text-[10px] uppercase tracking-[0.13em] text-faint">Time remaining</dt>
                     <dd className="text-[13px] font-medium text-fg">
                       {live && !live.charging
-                        ? (formatSeconds(live.dischargingTime) ?? "Calculating…")
+                        ? (formatSeconds(live.dischargingTime) ?? "Not reported")
                         : "—"}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-[10px] uppercase tracking-[0.13em] text-faint">Drain rate</dt>
                     <dd className="text-[13px] font-medium text-fg">
-                      {drain ? `${drain.perHour.toFixed(0)}% / hour` : "Sampling…"}
+                      {drain ? `${drain.perHour.toFixed(0)}% / hour` : "Needs more samples"}
                     </dd>
                   </div>
                   <div>
@@ -332,7 +332,7 @@ export function BatteryView() {
         ].map((item) => (
           <div
             key={item.title}
-            className="rounded-xl border border-dashed border-line-soft bg-canvas-deep/30 px-4 py-3"
+            className="rounded-xl border border-dashed border-line-soft bg-surface-2/50 px-4 py-3"
           >
             <div className="flex items-center gap-2">
               <BatteryCharging className="size-3.5 text-faint" aria-hidden="true" />

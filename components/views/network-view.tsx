@@ -72,9 +72,9 @@ export function NetworkView() {
                 along with jitter.
               </p>
               <p>
-                <span className="font-medium text-fg">Download:</span> a capped, incompressible payload
-                (1–6 MB depending on your connection hint) streamed from this site and counted as it
-                arrives.
+                <span className="font-medium text-fg">Download:</span> a capped, incompressible buffer
+                (1–8 MB depending on your connection hint) downloaded from this site and timed across
+                the completed transfer.
               </p>
               <p>
                 <span className="font-medium text-fg">Upload:</span> 1 MB posted to a stateless endpoint

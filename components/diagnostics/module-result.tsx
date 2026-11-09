@@ -6,7 +6,7 @@ import { Note, ProgressBar, Spinner } from "@/components/ui/misc";
 import { Badge } from "@/components/ui/badge";
 import { useDiagnostics } from "@/context/diagnostic-provider";
 import type { ModuleId } from "@/lib/types";
-import { STATUS_META } from "@/lib/utils";
+import { STATUS_META, formatTimestamp } from "@/lib/utils";
 
 export function ModuleResultPanel({
   moduleId,
@@ -29,9 +29,9 @@ export function ModuleResultPanel({
           <CardTitle>{title}</CardTitle>
           {result?.summary ? (
             <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted">{result.summary}</p>
-          ) : (
-            <p className="mt-1.5 text-[12.5px] text-faint">{emptyHint}</p>
-          )}
+          ) : isRunning ? (
+            <p className="mt-1.5 text-[12.5px] text-faint">Collecting readings…</p>
+          ) : null}
         </div>
         {status && status !== "idle" ? (
           <Badge
@@ -92,6 +92,11 @@ export function ModuleResultPanel({
             <span className="ml-auto">
               Evidence coverage {Math.round(result.coverage * 100)}%
             </span>
+            {result.completedAt ? (
+              <span className="w-full text-faint sm:w-auto">
+                Captured {formatTimestamp(result.completedAt)}
+              </span>
+            ) : null}
           </div>
         ) : null}
       </CardContent>

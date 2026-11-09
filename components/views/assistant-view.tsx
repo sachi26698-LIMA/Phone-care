@@ -339,7 +339,7 @@ export function AssistantView() {
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 placeholder="Ask about your battery, storage, network or what a browser can measure…"
-                className="h-11 w-full rounded-xl border border-line bg-canvas-deep/60 px-3.5 text-[13px] text-fg outline-none transition-colors placeholder:text-faint focus:border-accent/70 focus:ring-2 focus:ring-accent/20"
+                className="h-11 w-full rounded-xl border border-line bg-white px-3.5 text-[13px] text-fg outline-none transition-colors placeholder:text-faint focus:border-accent/70 focus:ring-2 focus:ring-accent/20"
                 autoComplete="off"
               />
               <Button type="submit" size="icon" disabled={!canAsk} aria-label="Send question">

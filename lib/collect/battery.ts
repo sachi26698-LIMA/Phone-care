@@ -188,7 +188,7 @@ export async function collectBattery(profile: UserProfile): Promise<ModuleResult
   readings.push({
     key: "time-to-full",
     label: "Time to full",
-    value: battery.charging ? (toFull ?? "Calculating…") : "—",
+    value: battery.charging ? (toFull ?? "Not reported") : "—",
     evidence: toFull ? "measured" : battery.charging ? "unavailable" : "measured",
     source: "Battery Status API",
     detail: toFull
@@ -202,7 +202,7 @@ export async function collectBattery(profile: UserProfile): Promise<ModuleResult
   readings.push({
     key: "time-to-empty",
     label: "Time remaining",
-    value: !battery.charging ? (toEmpty ?? "Calculating…") : "—",
+    value: !battery.charging ? (toEmpty ?? "Not reported") : "—",
     evidence: toEmpty ? "measured" : !battery.charging ? "unavailable" : "measured",
     source: "Battery Status API",
     status: "neutral",

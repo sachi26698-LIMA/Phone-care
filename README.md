@@ -20,8 +20,27 @@ results without inventing data.
 | Thermal | Throttling signal under sustained load | Any temperature reading |
 | Screen | Resolution, density, gamut, inferred refresh rate | Panel defects (confirmed by you) |
 | Touch | Contact count, 40-zone coverage map | Raw pressure and digitiser accuracy |
-| Compatibility | 36-point feature matrix for this browser | Hardware capability behind the browser |
+| Compatibility | 37-point feature matrix for this browser | Hardware capability behind the browser |
 | Performance | Frame cadence, compute index, browser storage speed | CPU usage %, GPU load, thermal state |
+
+## Design system
+
+Premium **light** theme only: warm off-white canvas, white cards, soft warm shadows, charcoal
+typography. Official palette — charcoal `#1A1A1F`, deep indigo `#2D2B55`, primary purple `#6A5ACD`,
+lavender `#A678B9`, champagne `#F0D9B5`, amber `#F4A62A`. Purple is the primary action colour;
+amber is reserved for important secondary actions and attention indicators. The only dark surface
+is the full-screen display-test viewer, where true black is required to test a panel.
+
+## Permissions
+
+None are required. All nine modules run without a prompt, because the APIs they use need no grant.
+Two optional permissions are offered with the reason shown before the request:
+
+- **Persistent storage** (storage module) — keeps the saved report from being evicted.
+- **Screen wake lock** (display test) — stops the screen sleeping while you inspect patterns.
+
+Both handle granted, declined, blocked and unsupported states. No permission can unlock battery
+health, temperature, cycle count or total disk usage — the app says so instead of pretending.
 
 ## Stack
 
@@ -81,6 +100,7 @@ Checked against a local production build (`next build` + `next start`) driven by
 - battery calibration yields an **estimated** 80% health from entered capacities;
 - JSON report export, 404 routes, print layout and reduced-motion mode all verified;
 - 320, 390, 820 and 1440 px with no horizontal overflow;
+- 113 text nodes measured against WCAG 2.2 contrast (0 failures on the light theme);
 - API caps enforced (5 MB upload → 413, download capped at 8 MB, assistant POST → 501 without a key).
 
 Numbers vary by machine and load. Full method, caveats and the one known transport artifact are in

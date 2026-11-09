@@ -5,6 +5,7 @@ import { RunModuleButton } from "@/components/diagnostics/run-module-button";
 import { Badge } from "@/components/ui/badge";
 import { useDiagnostics } from "@/context/diagnostic-provider";
 import { MODULE_MAP } from "@/lib/modules";
+import { ModuleIcon } from "@/components/ui/icon";
 import type { ModuleId } from "@/lib/types";
 import { formatTimestamp, scoreBand } from "@/lib/utils";
 
@@ -23,9 +24,13 @@ export function ModuleHeader({
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="max-w-2xl">
+        <div className="flex max-w-2xl items-start gap-3.5">
+          <span className="mt-1 hidden size-11 shrink-0 place-items-center rounded-2xl bg-purple/[0.09] text-purple sm:grid">
+            <ModuleIcon name={meta.icon} className="size-5" />
+          </span>
+          <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent/85">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-purple">
               Diagnostic module
             </p>
             {result?.completedAt ? (
@@ -42,6 +47,7 @@ export function ModuleHeader({
           <p className="mt-2 text-[14px] leading-relaxed text-muted">
             {description ?? meta.description}
           </p>
+          </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-2">
           <RunModuleButton moduleId={moduleId} size="md" variant="primary" label="Run module" />
@@ -53,7 +59,7 @@ export function ModuleHeader({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-line-soft bg-surface-2/25 px-3.5 py-2.5">
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-line-soft bg-white px-3.5 py-2.5">
         <EvidenceBadge level="measured" showLabel={false} />
         <p className="text-[11.5px] leading-relaxed text-muted">
           <span className="font-medium text-fg">Evidence policy: </span>

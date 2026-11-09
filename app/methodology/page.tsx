@@ -47,7 +47,7 @@ const LIMITS = [
   ["Public IP / ISP", "Would need a third-party service. Deliberately not contacted.", "Unavailable"],
   ["Device temperature", "No web API exists. Throttling under load is inferred instead.", "Unavailable"],
   ["Display defects", "Requires human observation; patterns help your eyes, not a sensor.", "Your input"],
-  ["Refresh rate", "Inferred from animation-frame cadence, capped by the compositor.", "Estimated"],
+  ["Refresh rate", "Inferred from animation-frame cadence when the sample is plausible; reported unavailable in throttled tabs.", "Estimated / unavailable"],
   ["Touch coverage", "Measured from pointer events over a test grid.", "Measured"],
 ];
 
@@ -55,7 +55,7 @@ export default function MethodologyPage() {
   return (
     <div className="space-y-6">
       <header className="max-w-3xl">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent/85">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-purple">
           Methodology
         </p>
         <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight text-fg sm:text-[32px]">
@@ -137,6 +137,51 @@ export default function MethodologyPage() {
         </Card>
 
         <div className="space-y-5">
+          <Card>
+            <CardHeader>
+              <div>
+                <CardTitle>Permissions policy</CardTitle>
+                <p className="mt-1 text-[11.5px] text-faint">
+                  Nothing is requested by default — and nothing can unlock hardware
+                </p>
+              </div>
+              <Badge tone="good">Zero required</Badge>
+            </CardHeader>
+            <CardContent className="space-y-3 text-[12px] leading-relaxed text-muted">
+              <p>
+                <span className="font-medium text-fg">Required: none.</span> All nine modules run
+                without a permission prompt. Device identity, storage quota, network throughput,
+                compatibility, performance and the guided tests use APIs that need no grant.
+              </p>
+              <div className="rounded-lg border border-line-soft bg-surface-2/60 p-3">
+                <p className="font-medium text-fg">Optional: persistent storage</p>
+                <p className="mt-1">
+                  Asked in the storage module, with the reason shown first. It stops the browser
+                  evicting your saved report; it does not read your disk or free space.
+                </p>
+                <p className="mt-1 text-[11px] text-faint">
+                  States handled: granted, declined without a prompt, blocked (NotAllowedError),
+                  unsupported API. The module keeps working in every case.
+                </p>
+              </div>
+              <div className="rounded-lg border border-line-soft bg-surface-2/60 p-3">
+                <p className="font-medium text-fg">Optional: screen wake lock</p>
+                <p className="mt-1">
+                  Offered inside the display test so patterns do not vanish mid-check. It is requested
+                  from the button click, released when you close the test, and never reads the screen.
+                </p>
+                <p className="mt-1 text-[11px] text-faint">
+                  States handled: active, released, declined (NotAllowedError), unsupported browser.
+                </p>
+              </div>
+              <p className="rounded-lg border border-warn/25 bg-warn/[0.05] p-3 text-[11.5px] text-warn">
+                <span className="font-semibold">No permission unlocks hardware.</span> Camera,
+                location or notification grants cannot reveal battery capacity, temperature, cycle
+                count, CPU heat or total disk usage. Any site claiming otherwise is guessing.
+              </p>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <div>
@@ -252,7 +297,7 @@ export default function MethodologyPage() {
               href={source.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-start gap-1 text-[11.5px] leading-relaxed text-accent/85 hover:text-accent hover:underline"
+              className="inline-flex items-start gap-1 text-[11.5px] leading-relaxed text-purple hover:text-accent hover:underline"
             >
               {source.label}
               <ArrowUpRight className="mt-0.5 size-3 shrink-0" aria-hidden="true" />

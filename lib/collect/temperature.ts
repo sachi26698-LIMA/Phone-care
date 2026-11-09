@@ -72,15 +72,26 @@ export function collectTemperature(
     numeric: Math.round(load.degradationPct),
   });
 
+  // A backgrounded or headless tab samples rAF at a few fps. Reporting that as a
+  // thermal frame-rate limit would be false, so only publish plausible samples.
+  const fpsUsable = load.avgFpsUnderLoad >= 20;
   readings.push({
     key: "fps-load",
     label: "Frame cadence under load",
-    value: `${load.avgFpsUnderLoad.toFixed(0)} fps`,
-    evidence: "measured",
+    value: fpsUsable ? `${load.avgFpsUnderLoad.toFixed(0)} fps` : null,
+    evidence: fpsUsable ? "measured" : "unavailable",
     source: "requestAnimationFrame during load",
-    detail: "Sustained heavy work is the harshest realistic test of a phone's thermal headroom while browsing.",
-    status: load.avgFpsUnderLoad >= 45 ? "good" : load.avgFpsUnderLoad >= 28 ? "warn" : "bad",
-    numeric: Math.round(load.avgFpsUnderLoad),
+    detail: fpsUsable
+      ? "Sustained heavy work is the harshest realistic test of a phone's thermal headroom while browsing."
+      : `Only ${load.avgFpsUnderLoad.toFixed(0)} fps were sampled, which happens when a tab is hidden or throttled. The throttling verdict above is unaffected.`,
+    status: fpsUsable
+      ? load.avgFpsUnderLoad >= 45
+        ? "good"
+        : load.avgFpsUnderLoad >= 28
+          ? "warn"
+          : "bad"
+      : "neutral",
+    numeric: fpsUsable ? Math.round(load.avgFpsUnderLoad) : undefined,
   });
 
   const ambient = ambientTempC ?? profile.ambientTempC;
@@ -117,6 +128,11 @@ export function collectTemperature(
   notes.push(
     "A short benchmark can only rule out severe throttling. Phones usually start throttling after 5–15 minutes of sustained gaming or navigation.",
   );
+  if (!fpsUsable) {
+    notes.push(
+      "Frame cadence could not be judged because the tab was throttled during the test. Keep it visible and re-run if you want that signal.",
+    );
+  }
   if (load.verdict === "heavy") {
     notes.push(
       "If the device is also warm to the touch, close heavy apps, stop charging while gaming, and remove a thick case. Persistent heat after cooldown can indicate a failing battery.",

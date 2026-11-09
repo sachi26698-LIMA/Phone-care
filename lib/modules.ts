@@ -77,7 +77,7 @@ export const MODULES: ModuleMeta[] = [
     mode: "manual",
     weight: 0.12,
     evidenceNote:
-      "Defects are confirmed by you. Refresh rate and pixel density are measured by the browser.",
+      "Defects are confirmed by you. Resolution, density, colour depth and gamut come from browser queries; refresh rate is inferred from frame cadence and reported unavailable when the sample is implausible.",
   },
   {
     id: "touch",
@@ -97,7 +97,7 @@ export const MODULES: ModuleMeta[] = [
     title: "Browser compatibility",
     short: "Compatibility",
     description:
-      "A 28-point feature matrix across sensors, media, storage and rendering APIs.",
+      "A 37-point feature matrix across sensors, media, storage and rendering APIs.",
     icon: "shapes",
     href: "/diagnostics/compatibility",
     mode: "auto",

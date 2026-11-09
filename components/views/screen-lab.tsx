@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Check, ChevronLeft, ChevronRight, Maximize2, Monitor, RotateCcw, Save, X } from "lucide-react";
 import { ModuleHeader } from "@/components/diagnostics/module-header";
+import { WakeLockToggle } from "@/components/diagnostics/wake-lock";
 import { ModuleResultPanel } from "@/components/diagnostics/module-result";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -179,7 +180,7 @@ export function ScreenLab() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2.5 rounded-xl border border-line-soft bg-surface-2/30 p-3.5">
-              <span className="grid size-9 place-items-center rounded-lg bg-canvas-deep text-accent">
+              <span className="grid size-9 place-items-center rounded-lg bg-surface-2 text-purple">
                 <Monitor className="size-4" aria-hidden="true" />
               </span>
               <div className="min-w-0">
@@ -216,7 +217,7 @@ export function ScreenLab() {
               })}
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border border-line-soft bg-canvas-deep/40 px-3.5 py-2.5">
+            <div className="flex items-center justify-between rounded-xl border border-line-soft bg-surface-2/60 px-3.5 py-2.5">
               <p className="text-[11.5px] text-muted">
                 {answered === 0
                   ? "No checks completed yet"
@@ -246,6 +247,8 @@ export function ScreenLab() {
               </Button>
             </div>
 
+            <WakeLockToggle />
+
             {failedCount > 0 ? (
               <Note tone="bad">
                 You reported {failedCount} defect{failedCount === 1 ? "" : "s"}. Photograph the screen
@@ -261,7 +264,7 @@ export function ScreenLab() {
               <CardTitle>Measured display</CardTitle>
               <p className="mt-1 text-[11.5px] text-faint">Reported by the browser, not by your eyes</p>
             </div>
-            <Badge tone="good">Measured</Badge>
+            <Badge tone="neutral">Browser-reported</Badge>
           </CardHeader>
           <CardContent className="space-y-2.5">
             {measurement ? (

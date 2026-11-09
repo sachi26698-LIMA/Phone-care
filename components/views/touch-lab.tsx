@@ -136,7 +136,7 @@ export function TouchLab() {
           <CardContent>
             <div
               ref={gridRef}
-              className="relative touch-none select-none overflow-hidden rounded-xl border border-line bg-canvas-deep"
+              className="relative mx-auto w-full max-w-[400px] touch-none select-none overflow-hidden rounded-xl border border-line bg-surface-2"
               style={{ aspectRatio: "3 / 4" }}
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
@@ -176,7 +176,12 @@ export function TouchLab() {
                 <span className="text-muted">
                   {covered.size} of {TOTAL} zones covered
                 </span>
-                <span className={cn("font-display text-sm font-semibold tabular-nums", tone)}>
+                <span
+                  className={cn(
+                    "font-display text-sm font-semibold tabular-nums",
+                    coveragePct === 0 ? "text-faint" : tone,
+                  )}
+                >
                   {coveragePct}%
                 </span>
               </div>

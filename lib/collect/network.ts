@@ -190,12 +190,17 @@ export async function collectNetwork(
       });
     }
     if (typeof conn.rtt === "number") {
+      // Chromium reports 0 when it has no estimate; 0 ms is never a real RTT.
+      const hasRtt = conn.rtt > 0;
       readings.push({
         key: "rtt-hint",
         label: "Browser RTT hint",
-        value: `${conn.rtt} ms`,
-        evidence: "estimated",
+        value: hasRtt ? `${conn.rtt} ms` : null,
+        evidence: hasRtt ? "estimated" : "unavailable",
         source: "Network Information API",
+        detail: hasRtt
+          ? "A coarse bucket maintained by the browser, rounded for privacy."
+          : "This browser reports 0 ms, which means it has no estimate rather than a zero-latency link.",
         status: "neutral",
       });
     }

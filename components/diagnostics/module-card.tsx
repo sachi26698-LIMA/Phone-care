@@ -49,11 +49,12 @@ export function ModuleCard({ meta }: { meta: ModuleMeta }) {
 
   const unavailable = result?.readings.filter((r) => r.evidence === "unavailable").length ?? 0;
   const measured = result?.readings.filter((r) => r.evidence === "measured").length ?? 0;
+  const estimated = result?.readings.filter((r) => r.evidence === "estimated").length ?? 0;
 
   return (
-    <Card className="group flex flex-col transition-all duration-300 hover:border-line hover:shadow-[0_20px_50px_-30px_rgba(103,232,249,0.35)]">
+    <Card className="group flex flex-col transition-all duration-300 hover:border-lavender/50 hover:shadow-lift">
       <div className="flex items-start justify-between gap-3 p-5 pb-3">
-        <div className="flex size-10 items-center justify-center rounded-xl border border-line-soft bg-gradient-to-br from-surface-2 to-canvas-deep text-accent transition-colors group-hover:border-accent/30">
+        <div className="flex size-10 items-center justify-center rounded-xl border border-line-soft bg-surface-2 text-purple transition-colors group-hover:border-lavender/60">
           <ModuleIcon name={meta.icon} className="size-[18px]" />
         </div>
         {statusBadge}
@@ -74,7 +75,12 @@ export function ModuleCard({ meta }: { meta: ModuleMeta }) {
         <div className="mt-auto pt-4">
           <div className="mb-1.5 flex items-baseline justify-between">
             <span className="text-[10.5px] font-medium uppercase tracking-[0.13em] text-faint">
-              {measured} measured{unavailable > 0 ? ` · ${unavailable} unavailable` : ""}
+              {measured > 0
+                ? `${measured} measured`
+                : estimated > 0
+                  ? `${estimated} estimated`
+                  : "0 measured"}
+              {unavailable > 0 ? ` · ${unavailable} unavailable` : ""}
             </span>
             <span
               className={cn(

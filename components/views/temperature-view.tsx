@@ -61,7 +61,7 @@ export function TemperatureView() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-line-soft bg-canvas-deep/40 p-4">
+            <div className="rounded-xl border border-line-soft bg-surface-2/60 p-4">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-faint">
                   Throttling signal

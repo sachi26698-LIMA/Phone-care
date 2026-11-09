@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Note, ProgressBar } from "@/components/ui/misc";
+import { Note } from "@/components/ui/misc";
+import { StoragePersistence } from "@/components/diagnostics/storage-persistence";
 import { useDiagnostics } from "@/context/diagnostic-provider";
 import { clamp } from "@/lib/utils";
 
@@ -163,13 +164,11 @@ export function StorageView() {
                 Run the storage module to measure this browser&rsquo;s quota.
               </p>
             ) : null}
-            <div className="pt-1">
-              <ProgressBar value={18} />
-              <p className="mt-2 text-[10.5px] leading-relaxed text-faint">
-                Browser quota is typically a fraction of free disk space and is shared across this
-                origin only. It is useful for cache planning, not for judging phone storage.
-              </p>
-            </div>
+            <p className="pt-1 text-[10.5px] leading-relaxed text-faint">
+              Browser quota is typically a fraction of free disk space and is shared across this
+              origin only. It is useful for cache planning, not for judging phone storage.
+            </p>
+            <StoragePersistence />
           </CardContent>
         </Card>
       </div>

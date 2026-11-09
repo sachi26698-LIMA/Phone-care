@@ -24,8 +24,19 @@ These rules are binding for every future task on this repository.
 6. **Quality gates before shipping.** `tsc --noEmit`, production build, navigation checks, mobile /
    tablet / desktop layouts, keyboard and contrast checks, error/loading/empty states, and a review
    of the complete diff.
-7. **Update this file** whenever a new permanent rule, platform constraint, or architecture
-   decision is established.
+7. **Light theme only.** PhoneCare is a premium warm-light product: off-white canvas, white cards,
+   purple primary actions, lavender secondary highlights, amber for important actions and
+   indicators, charcoal typography. No dark dashboard, no black canvas, no neon treatment. The
+   only intentionally dark surface is the full-screen display-test pattern viewer, because a
+   panel test must be able to show true black.
+8. **Permission discipline.** Request nothing by default. Every optional permission must be
+   explained in plain language *before* the request, must be triggered by a user gesture, must
+   handle granted / denied / unsupported states, and must never be implied to unlock hardware
+   data the platform does not expose.
+9. **Design is evidence-based.** Component decisions follow the brand tokens and the documented
+   contrast budget, not taste. Every redesign closes with a measured contrast and overflow pass.
+10. **Update this file** whenever a new permanent rule, platform constraint, or architecture
+    decision is established.
 
 ---
 
@@ -163,26 +174,69 @@ Server (Next.js)
 
 ---
 
-## 5. UI/UX design plan
+## 5. UI/UX design plan (light theme v2)
 
-**Direction:** premium futuristic dark SaaS dashboard — not a gamified utility app.
+**Direction:** premium warm-light clinical product — a trustworthy health instrument, not a
+gamified utility and not a dark dashboard. The reference point is a well-made consumer health
+app: calm surfaces, confident type, one purple action per view, amber reserved for attention.
 
-- **Colour:** OKLCH tokens on a near-black navy canvas (`oklch(0.145 0.018 265)`), cyan→violet accent
-  gradient, semantic good/warn/bad, text `oklch(0.976 0.004 265)` on canvas for >12:1 contrast;
-  muted text kept above 4.5:1.
-- **Typography:** Space Grotesk for display/headings, Inter for UI, tabular numerals for metrics.
-- **Layout:** fixed 268 px sidebar with progress summary; sticky glass header; max 1240 px content;
-  mobile bottom tab bar + slide-over drawer; single-column flow below 640 px.
-- **Surfaces:** translucent panels with 1 px `line-soft` borders, inset top highlight, restrained
-  radial glows, 64 px grid backdrop masked to the top of the page.
-- **Components:** evidence badges, score rings with gradient stroke, module cards, metric strips,
-  reading rows with provenance, progress bars, notes/callouts, empty states.
-- **Motion:** 200–550 ms ease-out reveals, gradient sheen on the logo, animated scan status. All
-  motion collapses under `prefers-reduced-motion`.
-- **Interaction:** one-tap full scan with live progress and cancel; per-module runs; guided labs
-  (screen overlay, touch grid); JSON export; print stylesheet for service centres.
-- **Accessibility:** skip link, landmarks, `aria-current`, dialog semantics with Escape, keyboard
-  operable patterns, focus-visible rings, no colour-only status (dot + text + label), 44 px targets.
+### 5.1 Official colour system
+
+| Token | Hex | Role in the product |
+| --- | --- | --- |
+| Charcoal | `#1A1A1F` | Body and heading text, dark text on amber fills |
+| Deep indigo | `#2D2B55` | Emphasised values, device chrome, footer depth |
+| Primary purple | `#6A5ACD` | Primary buttons, active navigation, links, ring gradient start |
+| Lavender | `#A678B9` | Secondary icon tints, ring gradient end, ambient washes |
+| Champagne | `#F0D9B5` | Warm hero wash, "hold awake" tint, soft section separation |
+| Amber orange | `#F4A62A` | Important secondary actions (AI Assistant, Run all tests), attention indicators |
+
+Semantic surfaces built on those brand colours:
+
+| Alias | Value | Notes |
+| --- | --- | --- |
+| `--color-canvas` | `#FAF7F3` | Warm off-white page background |
+| `--color-surface` | `#FFFFFF` | Cards, header bar, drawer |
+| `--color-surface-2` | `#F7F3FA` | Lavender-tinted insets, chips, quiet panels |
+| `--color-canvas-deep` | `#F2ECE3` | Warm inset for disabled/placeholder areas |
+| `--color-line` / `--color-line-soft` | `#E3DDD4` / `#EFE9E1` | Borders and dividers |
+| `--color-fg` | `#1A1A1F` | Charcoal body text |
+| `--color-muted` | `#5C5666` | Secondary text (≈6.6:1 on canvas) |
+| `--color-faint` | `#766F80` | Metadata (≈4.8:1 on white) |
+| `--color-accent` | `#6A5ACD` | Primary action / link (≈5.3:1 on white) |
+| `--color-warn` | `#A15A00` | Text-safe amber; `--color-amber` stays for fills |
+| `--color-good` | `#1E7A4C` | Measured/healthy status |
+| `--color-bad` | `#B3261E` | Action-needed status |
+| `--color-info` | `#3B5BDB` | Neutral informational accents |
+
+Rules: white text only on purple (5.3:1) or indigo; charcoal on amber (≈8:1); amber is never used
+as small text on white; status is never encoded by colour alone (dot + label + text). Shadows are
+soft and warm (`0 1px 2px rgba(26,26,31,.04), 0 18px 40px -28px rgba(45,43,85,.35)`), never glow.
+
+### 5.2 Layout
+
+- **Desktop ≥1024 px:** floating white navigation bar with a purple pill for the active route, a
+  full-width hero, a two-column health/assistant row, a 3-up tool grid, then module cards.
+- **Tablet 768–1023 px:** same top bar with the drawer for navigation, hero stacks, health and
+  assistant become full-width, tools stay 2-up, bottom tab bar remains.
+- **Mobile <640 px:** compact header (menu + wordmark), hero copy + actions only (illustration
+  hidden to keep the first screen useful), 2-up tool grid, single-column cards, 5-item bottom bar
+  with a purple indicator.
+- Content max width 1280 px; 12–20 px page gutters; 20–24 px card padding; 16 px radii.
+
+### 5.3 Component language
+
+White cards with 1 px warm borders and soft shadows; purple icon tiles for primary modules, amber
+tiles for attention modules, lavender for secondary; score rings that fade purple→lavender with a
+dashed lavender placeholder when no score exists; evidence badges (measured / estimate / your input
+/ unavailable) repeated in every list; collapsible explanations instead of hidden caveats.
+
+### 5.4 Motion and accessibility
+
+150–550 ms ease-out transitions, a single soft sheen on the logo, no parallax; everything collapses
+under `prefers-reduced-motion`. Skip link first in tab order, focus-visible purple rings, focus
+trap + Escape in the mobile drawer, 44 px touch targets, colour-independent status, and a contrast
+budget verified by script (see §7.6: 115 text samples, 0 failures).
 
 ---
 
@@ -198,7 +252,8 @@ app/
 components/
   layout/    app-shell, nav-items, run-scan-button
   ui/        button, card, badge, evidence-badge, score-ring, readings, misc, field, icon
-  diagnostics/ module-card, module-header, module-result, run-module-button, metric-strip
+  diagnostics/ module-card, module-header, module-result, run-module-button, metric-strip,
+               storage-persistence (request + states), wake-lock (request + states)
   views/     dashboard, device, battery, storage, network, temperature, screen-lab, touch-lab,
              compatibility, performance, results, assistant
 context/     diagnostic-provider.tsx
@@ -207,6 +262,46 @@ lib/
   collect/{common,device,battery,storage,network,performance,temperature,screen,touch,compatibility}.ts
   guides/index.ts
 ```
+
+---
+
+## 6.1 Permissions policy
+
+**Required: none.** No module asks for camera, microphone, location, notifications, motion or
+bluetooth. Those APIs exist, but none of them reveals battery health, temperature, disk usage or
+chip load, so requesting them would be theatre.
+
+Two optional, user-initiated permissions are implemented:
+
+| Permission | Where | Why it exists | Explainer shown first | States implemented |
+| --- | --- | --- | --- | --- |
+| Persistent storage (`navigator.storage.persist()`) | Storage module | Stops the browser evicting the saved scan when space is low | Yes — states it cannot read files, disk or free space | checking, granted, not-requested, declined-without-prompt, blocked (`NotAllowedError`), unsupported, retry |
+| Screen wake lock (`navigator.wakeLock.request("screen")`) | Display test | Prevents the display sleeping while a human inspects patterns | Yes — states it is released on close and never reads the screen | active, released, declined (`NotAllowedError`), error, unsupported, browser-inactive re-acquire |
+
+Both are triggered by an explicit button press (user gesture), never automatically on page load.
+Permission state is displayed inline, and failure never blocks the underlying diagnostic.
+
+**Explicitly impossible:** no permission grant exposes battery capacity/health, battery or CPU
+temperature, cycle count, voltage, total disk usage, CPU load or signal strength to a web page.
+Where those values are needed (capacity, ambient heat), the app asks the user to copy them from
+the OS and labels them `user`.
+
+### 6.2 Native integration (documented, deliberately not implemented)
+
+Native code is **not** required for any module in this build, and none is shipped. If PhoneCare
+later adds a thin native shell, these are the only APIs worth the cost, with their constraints:
+
+| Data | Android | iOS | Requirement |
+| --- | --- | --- | --- |
+| Battery capacity/health, cycles | `BatteryManager` (API 21+), `BatteryManager.EXTRA_CYCLE_COUNT` (API 34+) | `UIDevice` battery level only; health via private/entitlement APIs — not available to App Store apps | Native wrapper + runtime permission review |
+| Thermal state | `PowerManager.getCurrentThermalStatus()` (API 29+) | `ProcessInfo.thermalState` (public) | Native wrapper |
+| CPU / memory detail | `ActivityManager.MemoryInfo`, `/proc` (restricted) | `os_proc_available_memory`, no per-core load | Native wrapper, store-review justification |
+| Disk totals | `StatFs` | `FileManager` volume capacities | Native wrapper |
+
+A Capacitor/React-Native shell would add an app-store release cycle, privacy disclosures and a
+second code path to audit. The browser build stays the source of truth; any future native layer
+must feed the same evidence model (`measured` with a native source label) and must never be
+simulated in the web build.
 
 ---
 
@@ -284,6 +379,48 @@ session-relative; guided checks depend on human confirmation.
 
 ---
 
+### 7.5 Module-by-module audit (2026-11-09)
+
+Each module was checked against four questions: what can genuinely be read, which API provides it,
+what is explicitly unavailable, and which states are handled.
+
+| Module | Genuinely readable (measured) | API / technique | Explicitly unavailable | Permission | Last-updated + retry |
+| --- | --- | --- | --- | --- | --- |
+| Device identity | platform, browser, engine, screen geometry, DPR, colour depth, GPU string, core count, memory class, language | User-Agent + Client Hints, `screen`, `devicePixelRatio`, WebGL `RENDERER`, `hardwareConcurrency`, `deviceMemory` | exact model, RAM size, IMEI, storage chip, panel revision | none | module timestamp + per-reading source, "Run module" retry |
+| Battery & health | level, charging state, coarse charge/discharge time (Chromium) | Battery Status API | capacity, temperature, voltage, cycles, wattage | none | timestamp; recalibration re-runs; unsupported and error states |
+| Storage | origin quota/usage, persistence state, localStorage size, IndexedDB availability | `navigator.storage.estimate/persisted`, `localStorage` | device disk total/free (user-entered only) | optional persistence | timestamp; input validation; denied/blocked/unsupported handled |
+| Network | latency, jitter, download, upload, connection class/hints (Chromium) | `fetch` to same-origin probe routes, `performance.now`, Network Information API | public IP, packet loss, cellular dBm | none | timestamp; failure falls back to previous value and explains; RTT 0 reported unavailable |
+| Thermal | throttling signal under sustained load | three-round compute benchmark, rAF cadence | any temperature reading | none | timestamp; fps sample below 20 fps reported unavailable instead of a false limit |
+| Screen & display | CSS/physical resolution, DPR, colour depth, gamut, HDR, refresh (when plausible) | `matchMedia`, `screen`, rAF cadence | panel defects, burn-in, true brightness | optional wake lock | timestamp; 8 guided confirmations persist; Escape/arrow keys; re-measure action |
+| Touch | contact count, coverage, missed zones, input types | Pointer Events, `maxTouchPoints` | pressure curve, hover/proximity, millimetre accuracy | none | timestamp; save trace; clear grid; unsupported (no digitiser) state |
+| Compatibility | 37 feature-detections, API coverage tier | `'x' in window`, `matchMedia`, context creation | physical hardware behind the APIs | none | timestamp; category filters; explicit unsupported marks |
+| Performance | compute index, storage write/read, JS heap (Chromium), frame cadence (foreground only) | deterministic loop, IndexedDB round-trip, `performance.memory`, rAF | CPU load %, GPU load, thermal state, cross-device scores | none | timestamp; note explains background-tab throttling; low-thread cap |
+
+Fixes made during this audit: removed a static `ProgressBar value={18}` that implied a measured
+quota; corrected the matrix size (28 → 37); stopped publishing 0 ms RTT, 4 Hz refresh and 4 fps
+frame cadence as measurements; removed a duplicated empty state on every module; corrected the
+thermal frame-reading contradiction; changed "Calculating…"/"Sampling…" placeholders to explicit
+"Not reported"/"Needs more samples"; fixed a duplicated category label in the feature matrix.
+
+### 7.6 Light-theme redesign verification
+
+| Check | Method | Result |
+| --- | --- | --- |
+| Type safety | `tsc --noEmit` | ✅ 0 errors |
+| Production build | `next build` | ✅ 28 routes |
+| Full scan on light build | headless Chromium, production server | ✅ 7/9 auto modules; device 93, storage 78, compatibility 98, network 94, performance 74, thermal 68–88 (session variance), battery partial |
+| Contrast | scripted WCAG pass over 113 rendered text nodes on `/` | ✅ 0 failures (≥4.5:1 body, ≥3:1 large) |
+| Horizontal overflow | 320 / 390 / 820 / 1440 px | ✅ 0 px at every width |
+| Mobile drawer | open, focus, Escape, focus trap | ✅ dialog mounts on open, focuses close button, closes on Escape |
+| Bottom navigation | 5 routes at 390 px | ✅ active purple indicator, no overlap with content (pb-28) |
+| Permission states | persistence request + wake lock request in headless Chromium | ✅ persistence granted; wake lock denied path renders with explanation, test still usable |
+| Guided tests | 8 screen patterns saved; 40-zone touch drag | ✅ persist across reload; touch 80/100 |
+| Print | `page.pdf()` with print media | ✅ navigation hidden, A4 output |
+| Console | `pageerror` + console error capture across all flows | ✅ 0 application errors |
+| No dark surfaces | visual review of every route | ✅ only the display-test overlay is dark by design |
+
+---
+
 ## 8. Deployment readiness (Vercel)
 
 | Item | State |
@@ -316,15 +453,25 @@ session-relative; guided checks depend on human confirmation.
 - Phone Clinix — Android diagnostic tools guide: https://phoneclinix.com/android-diagnostic-tools-run-a-full-health-check-with-ease/
 - Play Store — Phone Doctor Pro: https://play.google.com/store/apps/details?id=com.predictapps.mobiletester
 - WCAG 2.2 understanding documents: https://www.w3.org/WAI/WCAG22/Understanding/
+- MDN — Screen Wake Lock API: https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API
+- MDN — `StorageManager.persist()`: https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/persist
+- MDN — `NetworkInformation.rtt` (0 means unknown): https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/rtt
+- web.dev — Persistent storage: https://web.dev/articles/persistent-storage
+- Chrome for Developers — Page visibility and `requestAnimationFrame` throttling: https://developer.chrome.com/docs/web-platform/page-lifecycle-api
 
 ---
 
 ## 10. Roadmap
 
-**v1.0 — shipped (this build)**
+**v1.0 — shipped**
 Nine modules, evidence-labelled readings, weighted scoring, recommendations engine, guides library,
 AI Brain (local engine + server extension point), JSON/print report, responsive shell, SEO,
 methodology page.
+
+**v2.0 — light brand redesign (this build)**
+Official six-colour palette, light-only surfaces, floating top navigation with purple pill, hero
+dashboard, 2-up mobile tool grid, permission explainers and states, module-by-module API audit,
+contrast and overflow verification. Remaining: real-device pass on Android/iOS and axe CI.
 
 **v1.1 — depth**
 - Audio/speaker and microphone tests with explicit consent and clear permission copy.
@@ -354,3 +501,8 @@ methodology page.
 | 2026-11-09 | Local deterministic assistant as default | Works with zero configuration and zero cost; remote model is opt-in |
 | 2026-11-09 | Maturity achieved without claiming native capability | Product honesty; unavailable states are a feature, not a gap |
 | 2026-11-09 | Self-hosted variable fonts | No third-party requests, no layout shift, predictable privacy posture |
+| 2026-11-09 | Light theme only; dark surfaces removed | User directive and brand system; warm-light surfaces read as a health product rather than a gaming dashboard |
+| 2026-11-09 | Top navigation replaces the desktop sidebar | Matches the approved reference, returns 268 px of width to the report content, keeps one navigation model across breakpoints |
+| 2026-11-09 | Display-test overlay stays black | A dead-pixel/black-field test must be able to render true black; documented as the single intentional dark surface |
+| 2026-11-09 | Only two optional permissions implemented | Persistence and wake lock add real value; any other prompt would imply hardware access the web cannot give |
+| 2026-11-09 | Unavailable beats implausible when sampling is throttled | 4 Hz refresh / 4 fps cadence are background-tab artifacts; publishing them would be a fabricated measurement |

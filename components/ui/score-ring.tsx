@@ -40,7 +40,7 @@ export function ScoreRing({
           <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="var(--color-accent)" />
             <stop offset="55%" stopColor="var(--color-violet)" />
-            <stop offset="100%" stopColor={band.stroke} />
+            <stop offset="100%" stopColor="var(--color-violet)" />
           </linearGradient>
         </defs>
         <circle
@@ -48,8 +48,11 @@ export function ScoreRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--color-line-soft)"
-          strokeWidth={stroke}
+          stroke={score == null ? "var(--color-lavender)" : "var(--color-line-soft)"}
+          strokeOpacity={score == null ? 0.45 : 1}
+          strokeWidth={score == null ? Math.max(2, stroke - 6) : stroke}
+          strokeDasharray={score == null ? "3 9" : undefined}
+          strokeLinecap="round"
         />
         <circle
           cx={size / 2}
@@ -62,12 +65,12 @@ export function ScoreRing({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           className="transition-[stroke-dashoffset] duration-1000 ease-out"
-          style={{ filter: "drop-shadow(0 0 8px rgba(99,220,255,0.25))" }}
+          style={{ filter: "drop-shadow(0 3px 6px rgba(106,90,205,0.22))" }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span
-          className="font-display text-3xl font-semibold tabular-nums tracking-tight"
+          className="font-display text-3xl font-semibold tabular-nums tracking-tight text-indigo"
           style={{ fontSize: size * 0.24 }}
         >
           {score == null ? "—" : Math.round(score)}
@@ -75,10 +78,10 @@ export function ScoreRing({
         <span
           className={cn(
             "text-[11px] font-medium uppercase tracking-[0.14em]",
-            provisional ? "text-warn" : band.text,
+            score == null ? "text-faint" : provisional ? "text-warn" : band.text,
           )}
         >
-          {label ?? (provisional ? "Provisional" : band.label)}
+          {label ?? (score == null ? "Not scored" : provisional ? "Provisional" : band.label)}
         </span>
         {sublabel ? (
           <span className="mt-0.5 text-[10px] uppercase tracking-[0.12em] text-faint">{sublabel}</span>

@@ -11,7 +11,7 @@ export interface GuideStep {
 export interface Guide {
   slug: string;
   title: string;
-  category: "Battery" | "Storage" | "Network" | "Thermal" | "Display" | "Performance" | "Methodology";
+  category: "Battery" | "Storage" | "Network" | "Thermal" | "Display" | "Touch" | "Performance" | "Methodology";
   summary: string;
   readMinutes: number;
   updated: string;
@@ -234,7 +234,7 @@ export const GUIDES: Guide[] = [
   {
     slug: "touchscreen-issues",
     title: "Touchscreen misses and dead zones",
-    category: "Display",
+    category: "Touch",
     summary:
       "How to distinguish a digitiser fault from a protector, a software overlay or a dirty screen.",
     readMinutes: 5,

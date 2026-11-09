@@ -5,7 +5,7 @@ export function Card({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "panel relative overflow-hidden rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.045)]",
+        "panel relative overflow-hidden rounded-2xl",
         className,
       )}
       {...props}

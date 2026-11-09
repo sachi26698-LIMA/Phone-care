@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Minus, ShieldQuestion } from "lucide-react";
+import { Check, X, ShieldQuestion } from "lucide-react";
 import { ModuleHeader } from "@/components/diagnostics/module-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,7 @@ export function CompatibilityView() {
     <div className="space-y-5">
       <ModuleHeader
         moduleId="compatibility"
-        description="A 36-point feature matrix. This describes what your browser exposes — not the physical capability of your phone."
+        description="A 37-point feature matrix. This describes what your browser exposes — not the physical capability of your phone."
       />
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -127,17 +127,23 @@ export function CompatibilityView() {
                           : "border-line bg-surface-2 text-faint",
                       )}
                     >
-                      {ok ? <Check className="size-3" aria-hidden="true" /> : <Minus className="size-3" aria-hidden="true" />}
+                      {ok ? (
+                        <Check className="size-3" aria-hidden="true" />
+                      ) : (
+                        <X className="size-3" aria-hidden="true" />
+                      )}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-[12.5px] font-medium text-fg">{reading.label}</p>
+                      <p className="text-[12.5px] font-medium text-fg">
+                        {reading.label}
+                        <span className="ml-2 align-middle text-[9.5px] uppercase tracking-wide text-faint">
+                          {reading.source.replace("Feature detection · ", "")}
+                        </span>
+                      </p>
                       <p className="text-[10.5px] leading-relaxed text-faint">
                         {ok ? reading.detail : `Unlocks: ${reading.detail}`}
                       </p>
                     </div>
-                    <span className="ml-auto shrink-0 text-[9.5px] uppercase tracking-wide text-faint">
-                      {reading.source.replace("Feature detection · ", "")}
-                    </span>
                   </div>
                 );
               })}

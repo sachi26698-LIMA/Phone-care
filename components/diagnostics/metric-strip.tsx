@@ -26,7 +26,7 @@ export function MetricStrip({
       {items.map((reading) => (
         <div
           key={reading.key}
-          className="rounded-xl border border-line-soft bg-gradient-to-br from-surface-2/50 to-canvas-deep/40 px-4 py-3.5"
+          className="rounded-xl border border-line-soft bg-surface-2/50 px-4 py-3.5"
         >
           <div className="flex items-start justify-between gap-2">
             <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-faint">

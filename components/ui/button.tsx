@@ -10,13 +10,13 @@ const base =
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-gradient-to-r from-accent to-violet text-canvas font-semibold shadow-[0_8px_30px_-12px] shadow-accent/60 hover:brightness-110 hover:shadow-accent/45 active:scale-[0.985]",
+    "bg-purple text-white font-semibold shadow-[0_12px_24px_-14px_rgba(106,90,205,0.9)] hover:bg-accent-deep hover:shadow-[0_14px_28px_-14px_rgba(106,90,205,0.95)] active:scale-[0.985]",
   secondary:
-    "bg-surface-2 text-fg border border-line hover:border-accent/50 hover:bg-surface-2/80 active:scale-[0.985]",
+    "bg-white text-indigo border border-line hover:border-lavender/70 hover:bg-surface-2 active:scale-[0.985]",
   outline:
-    "border border-line text-fg hover:border-accent/60 hover:text-accent hover:bg-accent/5 active:scale-[0.985]",
-  ghost: "text-muted hover:text-fg hover:bg-surface-2/70",
-  danger: "bg-bad/15 text-bad border border-bad/35 hover:bg-bad/25",
+    "border border-purple/35 text-purple hover:border-purple hover:bg-purple/[0.06] active:scale-[0.985]",
+  ghost: "text-muted hover:text-indigo hover:bg-surface-2",
+  danger: "bg-bad/[0.08] text-bad border border-bad/30 hover:bg-bad/[0.14]",
 };
 
 const sizes: Record<Size, string> = {

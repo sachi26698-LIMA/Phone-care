@@ -18,7 +18,7 @@ export function SectionTitle({
     <div className={cn("flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between", className)}>
       <div className="max-w-2xl">
         {eyebrow ? (
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-accent/85">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-purple">
             {eyebrow}
           </p>
         ) : null}
@@ -90,7 +90,7 @@ export function Note({
   className?: string;
 }) {
   const tones = {
-    neutral: "border-line-soft bg-surface-2/40 text-muted",
+    neutral: "border-line-soft bg-surface-2/60 text-muted",
     warn: "border-warn/25 bg-warn/[0.06] text-warn/90",
     bad: "border-bad/30 bg-bad/[0.07] text-bad/90",
     good: "border-good/25 bg-good/[0.06] text-good/90",

@@ -35,7 +35,7 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
   return (
     <input
       className={cn(
-        "h-10 w-full rounded-lg border border-line bg-canvas-deep/60 px-3 text-sm text-fg outline-none transition-colors placeholder:text-faint focus:border-accent/70 focus:ring-2 focus:ring-accent/20 disabled:opacity-50",
+        "h-10 w-full rounded-lg border border-line bg-white px-3 text-sm text-fg outline-none transition-colors placeholder:text-faint focus:border-accent/70 focus:ring-2 focus:ring-accent/20 disabled:opacity-50",
         className,
       )}
       {...props}
@@ -47,7 +47,7 @@ export function Select({ className, ...props }: ComponentProps<"select">) {
   return (
     <select
       className={cn(
-        "h-10 w-full rounded-lg border border-line bg-canvas-deep/60 px-3 text-sm text-fg outline-none transition-colors focus:border-accent/70 focus:ring-2 focus:ring-accent/20",
+        "h-10 w-full rounded-lg border border-line bg-white px-3 text-sm text-fg outline-none transition-colors focus:border-accent/70 focus:ring-2 focus:ring-accent/20",
         className,
       )}
       {...props}
