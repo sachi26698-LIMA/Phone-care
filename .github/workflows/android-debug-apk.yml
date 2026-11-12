@@ -184,19 +184,20 @@ jobs:
 
   ui-walk:
     name: Walk every screen on an emulator
-    # Physical-device testing is impossible in CI, so this boots a real Android emulator,
-    # installs the APK the job above just built, walks all 24 screens with uiautomator and
-    # commits the screenshots. It is emulator evidence, not a handset.
+    # Physical-device testing is impossible in CI, so this provisions an emulator directly rather
+    # than through a wrapper action: every provisioning command, the boot wait and the walk all
+    # land in docs/testing/evidence/emulator/walk.log, which is committed even on failure.
+    # This is emulator evidence, not a handset.
     needs: build-debug-apk
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 75
     permissions:
       contents: write
-    defaults:
-      run:
-        working-directory: native/android
-
+    env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_AVD_HOME: /home/runner/.android/avd
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -221,27 +222,42 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls -l /dev/kvm || true
 
-      - name: Walk the app on an emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          target: google_apis
-          arch: x86_64
-          profile: pixel_5
-          disable-animations: true
-          emulator-options: >-
-            -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-            -no-snapshot -camera-back none -camera-front none
-          # Absolute paths: the action runs this from its own working directory, so a bare
-          # `cd native/android` silently misses and python exits 2 without doing anything.
-          script: |
-            echo "cwd=$(pwd) workspace=$GITHUB_WORKSPACE"
-            cd "$GITHUB_WORKSPACE/native/android" || exit 3
-            echo "walking from $(pwd)"; ls -l ui-walk.py
-            python3 -u ui-walk.py > "$GITHUB_WORKSPACE/walk.log" 2>&1
-            rc=$?
-            cat "$GITHUB_WORKSPACE/walk.log"
-            exit $rc
+      - name: Provision the emulator
+        run: |
+          set -x
+          mkdir -p docs/testing/evidence/emulator
+          LOG=docs/testing/evidence/emulator/walk.log
+          {
+            echo "== provisioning $(date -u +%FT%TZ)"
+            echo "SDK=${ANDROID_HOME}"
+            export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+            yes | sdkmanager --licenses > /dev/null 2>&1 || true
+            sdkmanager --install "platform-tools" "emulator" "system-images;android-34;google_apis;x86_64" 2>&1 | tail -5
+            echo no | avdmanager create avd -n walk -k "system-images;android-34;google_apis;x86_64" -d pixel_5 --force
+            adb start-server 2>&1 | tail -2
+            nohup "$ANDROID_HOME/emulator/emulator" -avd walk -no-window -no-audio -no-boot-anim \
+              -no-snapshot -gpu swiftshader_indirect -no-metrics -camera-back none -camera-front none \
+              > /tmp/emulator.log 2>&1 &
+            echo "emulator pid $!"
+            adb wait-for-device
+            for i in $(seq 1 120); do
+              booted=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+              [ "$booted" = "1" ] && break
+              sleep 5
+            done
+            echo "boot_completed=$booted after ~$((i*5))s"
+            adb devices
+            adb shell wm dismiss-keyguard || true
+          } 2>&1 | tee "$LOG"
+          adb devices | grep -q "emulator.*device" || { echo "::error::no emulator device"; tail -40 /tmp/emulator.log; exit 1; }
+
+      - name: Walk the app on the emulator
+        run: |
+          set -x
+          export PATH="$ANDROID_HOME/platform-tools:$PATH"
+          adb devices
+          python3 native/android/ui-walk.py 2>&1 | tee -a docs/testing/evidence/emulator/walk.log
+          exit ${PIPESTATUS[0]}
 
       - name: Upload emulator evidence
         if: always()
@@ -252,42 +268,18 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-      # Logs from this job are not retrievable through the API afterwards, so the raw output is
-      # committed with the screenshots. A failed walk is still diagnosable from the branch.
-      - name: Collect the raw walk log
-        if: always()
-        working-directory: .
-        run: |
-          mkdir -p docs/testing/evidence/emulator
-          if [ -f walk.log ]; then
-            cp walk.log docs/testing/evidence/emulator/walk-raw.log
-          else
-            echo "walk.log missing: the walk script never started" \
-              > docs/testing/evidence/emulator/walk-raw.log
-          fi
-          python3 - <<'PY'
-          import pathlib
-          lines = pathlib.Path("docs/testing/evidence/emulator/walk-raw.log").read_text(
-              errors="replace").splitlines()
-          fails = [ln for ln in lines if ln.startswith("[FAIL]")]
-          notes = [ln for ln in lines if ln.startswith("::notice")]
-          print(f"::notice title=UI walk::log lines={len(lines)} fails={len(fails)}")
-          for line in (fails + notes)[:8]:
-              print(f"::notice title=walk::{line[:350]}")
-          for line in lines[-6:]:
-              print(f"::notice title=tail::{line[:350]}")
-          PY
-
       - name: Publish evidence back to the branch
         if: always()
-        working-directory: .
         run: |
+          if [ -f /tmp/emulator.log ]; then
+            cp /tmp/emulator.log docs/testing/evidence/emulator/emulator-boot.log
+          fi
           git config user.name "phonecare-ci"
           git config user.email "ci@phonecare.invalid"
           git add -f docs/testing/evidence/emulator || true
           if git diff --cached --quiet; then
             echo "no evidence changes to publish"
           else
-            git commit -m "ui validation: emulator screenshots and walk report [skip ci]"
+            git commit -m "ui validation: emulator run evidence [skip ci]"
             git push
           fi
