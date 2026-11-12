@@ -1,6 +1,6 @@
 ++ date -u +%FT%TZ
-+ echo '== provisioning 2026-11-12T15:37:33Z'
-== provisioning 2026-11-12T15:37:33Z
++ echo '== provisioning 2026-11-12T15:54:17Z'
+== provisioning 2026-11-12T15:54:17Z
 + echo SDK=/usr/local/lib/android/sdk
 SDK=/usr/local/lib/android/sdk
 + adb version
@@ -46,8 +46,8 @@ walk
 + adb start-server
 * daemon not running; starting now at tcp:5037
 * daemon started successfully
-+ echo 'emulator pid 2430'
-emulator pid 2430
++ echo 'emulator pid 2649'
+emulator pid 2649
 + nohup /usr/local/lib/android/sdk/emulator/emulator -avd walk -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -no-metrics -camera-back none -camera-front none
 ++ seq 1 60
 + for i in $(seq 1 60)
@@ -90,18 +90,23 @@ emulator-5554	device
 + '[' '' = 1 ']'
 + sleep 5
 + for i in $(seq 1 120)
+++ tr -d '\r'
+++ adb shell getprop sys.boot_completed
++ '[' '' = 1 ']'
++ sleep 5
++ for i in $(seq 1 120)
 ++ adb shell getprop sys.boot_completed
 ++ tr -d '\r'
 + '[' '' = 1 ']'
 + sleep 5
 + for i in $(seq 1 120)
-++ tr -d '\r'
 ++ adb shell getprop sys.boot_completed
+++ tr -d '\r'
 + '[' 1 = 1 ']'
 + booted=1
 + break
-+ echo 'boot_completed=1 after ~25s'
-boot_completed=1 after ~25s
++ echo 'boot_completed=1 after ~30s'
+boot_completed=1 after ~30s
 + adb shell wm dismiss-keyguard
 + echo '== emulator log tail'
 == emulator log tail
@@ -118,14 +123,14 @@ INFO         |   androidboot.vbmeta.digest=451e57ed688ff746d2c636d52169ade253e2b
 INFO         |   androidboot.vbmeta.hash_alg=sha256
 INFO         |   androidboot.vbmeta.size=6656
 INFO         |   androidboot.veritymode=enforcing
-WARNING: cannnot unmap ptr 0x7fe994e01000 as it is in the protected range from 0x7fe8f4e00000 to 0x7fe995000000
+WARNING: cannnot unmap ptr 0x7fd3de401000 as it is in the protected range from 0x7fd33e400000 to 0x7fd3de600000
 INFO         | Monitoring duration of emulator setup.
 WARNING      | The emulator now requires a signed jwt token for gRPC access! Use the -grpc flag if you really want an open unprotected grpc port
 INFO         | Using security allow list from: /usr/local/lib/android/sdk/emulator/lib/emulator_access.json
-INFO         | The active JSON Web Key Sets can be found here: /run/user/1001/avd/running/2430/jwks/46da2655-f19c-4942-a89f-cfd1b0f38ed2/active.jwk
-INFO         | Scanning /run/user/1001/avd/running/2430/jwks/46da2655-f19c-4942-a89f-cfd1b0f38ed2 for jwk keys.
+INFO         | The active JSON Web Key Sets can be found here: /run/user/1001/avd/running/2649/jwks/d9976e81-0ec3-4dee-ac21-4c6b61b59145/active.jwk
+INFO         | Scanning /run/user/1001/avd/running/2649/jwks/d9976e81-0ec3-4dee-ac21-4c6b61b59145 for jwk keys.
 INFO         | Started GRPC server at 127.0.0.1:8554, security: Local, auth: +token
-INFO         | Advertising in: /run/user/1001/avd/running/pid_2430.ini
+INFO         | Advertising in: /run/user/1001/avd/running/pid_2649.ini
 INFO         | Activated packet streamer for bluetooth emulation
 INFO         | Successfully initialized netsim WiFi
 INFO         | Setting display: 0 configuration to: 1080x2340, dpi: 440x440 
@@ -134,14 +139,14 @@ INFO         | emulatorSetupEnvironment: Environment scene is not required
 USER_INFO    | Emulator is performing a full startup. This may take upto two minutes, or more.
 WARNING      | Failed to process .ini file /home/runner/.android/emu-update-last-check.ini for reading.
 WARNING      | Failed to process .ini file /home/runner/.android/emu-update-last-check.ini for reading.
-INFO         | Boot completed in 31928 ms
+INFO         | Boot completed in 38343 ms
 INFO         | Increasing screen off timeout, logcat buffer size to 2M.
 cwd=/home/runner/work/Phone-care/Phone-care python=3.12.3 apk=app/build/outputs/apk/debug/app-debug.apk
 adb=Android Debug Bridge version 1.0.41
 [PASS] Emulator finished booting — 1
 [PASS] Install APK — 1054826 bytes, runtime permissions granted
 [PASS] Launch MainActivity — Complete
-foreground: mCurrentFocus=Window{1e7b310 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}
+foreground: mCurrentFocus=Window{b314c16 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}
 [PASS] Dashboard renders — app bar title and content present
 [PASS] Tab Home → Dashboard
 [PASS] Tab Diagnose → Diagnostics
@@ -168,55 +173,31 @@ foreground: mCurrentFocus=Window{1e7b310 u0 app.phonecare.diagnostics/app.phonec
 [PASS] Cellular diagnostics back returns to Network
 [PASS] Wi-Fi diagnostics opens
 [PASS] Wi-Fi diagnostics back returns to Network
-[FAIL] Internet quality opens — header 'Internet quality' not found
-::error title=UI walk::Internet quality opens — header 'Internet quality' not found
-[FAIL] Internet quality back returns to Network — hub title missing after back
-::error title=UI walk::Internet quality back returns to Network — hub title missing after back
-[FAIL] Indoor survey opens — row never scrolled into view above the bottom nav
-::error title=UI walk::Indoor survey opens — row never scrolled into view above the bottom nav
-[FAIL] Troubleshoot opens — row never scrolled into view above the bottom nav
-::error title=UI walk::Troubleshoot opens — row never scrolled into view above the bottom nav
-[FAIL] Guides opens — row never scrolled into view above the bottom nav
-::error title=UI walk::Guides opens — row never scrolled into view above the bottom nav
-[FAIL] Assistant opens — row never scrolled into view above the bottom nav
-::error title=UI walk::Assistant opens — row never scrolled into view above the bottom nav
-[FAIL] Methodology opens — row never scrolled into view above the bottom nav
-::error title=UI walk::Methodology opens — row never scrolled into view above the bottom nav
-[FAIL] Settings opens — row never scrolled into view above the bottom nav
-::error title=UI walk::Settings opens — row never scrolled into view above the bottom nav
-[FAIL] Privacy & permissions opens — row never scrolled into view above the bottom nav
-::error title=UI walk::Privacy & permissions opens — row never scrolled into view above the bottom nav
-[FAIL] Guides opens from More — row missing
-::error title=UI walk::Guides opens from More — row missing
-[PASS] Guide search filters results — typed 'wifi'
-[FAIL] Run full check button present — primary button not found
-::error title=UI walk::Run full check button present — primary button not found
-[SKIP] Export opens the system share sheet — no saved report on a freshly cleared profile
+[PASS] Internet quality opens
+[PASS] Internet quality back returns to Network
+[PASS] Indoor survey opens
+[PASS] Indoor survey back returns to Network
+[PASS] Troubleshoot opens
+[PASS] Troubleshoot back returns to Network
+[PASS] Guides opens
+[PASS] Guides back returns to More
+[PASS] Assistant opens
+[PASS] Assistant back returns to More
+[PASS] Methodology opens
+[PASS] Methodology back returns to More
+[PASS] Settings opens
+[PASS] Settings back returns to More
+[PASS] Privacy & permissions opens
+[PASS] Privacy & permissions back returns to More
+[PASS] Guide detail opens — battery-health-decline
+[FAIL] Guide search filters results — no matching result after typing
+::error title=UI walk::Guide search filters results — no matching result after typing
+[NOTE] Permission dialog shown — no request was needed on this emulator image
+[PASS] Full check reports progress or results — on-screen measurement text present
+[PASS] Export opens the system share sheet — No recommended people to share with
+[PASS] Settings save round-trips — confirmation shown
 [NOTE] System dark mode captured — the app must stay light; compare 01-dashboard
 [PASS] Wide layout still renders the dashboard — 1600x1000 @ 160 dpi (800x500 dp)
-Traceback (most recent call last):
-  File "/home/runner/work/Phone-care/Phone-care/native/android/ui-walk.py", line 494, in <module>
-    sys.exit(main())
-             ^^^^^^
-  File "/home/runner/work/Phone-care/Phone-care/native/android/ui-walk.py", line 448, in main
-    rc, logcat = adb("shell", "logcat", "-d", "-v", "brief", timeout=180)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/Phone-care/Phone-care/native/android/ui-walk.py", line 53, in adb
-    return run(ADB, *args, timeout=timeout)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/Phone-care/Phone-care/native/android/ui-walk.py", line 46, in run
-    p = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/subprocess.py", line 550, in run
-    stdout, stderr = process.communicate(input, timeout=timeout)
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
-    stdout, stderr = self._communicate(input, endtime, timeout)
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/subprocess.py", line 2153, in _communicate
-    stdout = self._translate_newlines(stdout,
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/subprocess.py", line 1086, in _translate_newlines
-    data = data.decode(encoding, errors)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-UnicodeDecodeError: 'utf-8' codec can't decode byte 0xc0 in position 2568852: invalid start byte
+[PASS] No uncaught exceptions in logcat — clean run
+[PASS] App process still alive at the end
+::notice title=UI walk::steps=55 pass=52 fail=1 soft=2 skip=0 shots=30

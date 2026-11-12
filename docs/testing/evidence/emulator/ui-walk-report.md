@@ -1,7 +1,7 @@
 # Android UI walk — emulator run
 
-- Steps: **46** · pass 34 · fail 10 · notes 1 · skipped 1
-- Screenshots: **20** in this folder
+- Steps: **55** · pass 52 · fail 1 · notes 2 · skipped 0
+- Screenshots: **30** in this folder
 - Device: Device: sdk_gphone64_x86_64 · Android 14 (API 34) · emulator, not physical hardware
 
 > Produced by `native/android/ui-walk.py` on a GitHub Actions emulator. This is emulator
@@ -10,7 +10,7 @@
 | Result | Step | Detail |
 | --- | --- | --- |
 | ✅ | Emulator finished booting | 1 |
-| ✅ | Install APK | 1054062 bytes, runtime permissions granted |
+| ✅ | Install APK | 1054826 bytes, runtime permissions granted |
 | ✅ | Launch MainActivity | Complete |
 | ✅ | Dashboard renders | app bar title and content present |
 | ✅ | Tab Home → Dashboard |  |
@@ -39,18 +39,27 @@
 | ✅ | Wi-Fi diagnostics opens |  |
 | ✅ | Wi-Fi diagnostics back returns to Network |  |
 | ✅ | Internet quality opens |  |
-| ❌ | Internet quality back returns to Network | hub title missing after back |
-| ❌ | Indoor survey opens | row not found on the hub screen |
-| ❌ | Troubleshoot opens | row not found on the hub screen |
-| ❌ | Guides opens | row not found on the hub screen |
-| ❌ | Assistant opens | row not found on the hub screen |
-| ❌ | Methodology opens | row not found on the hub screen |
-| ❌ | Settings opens | row not found on the hub screen |
-| ❌ | Privacy & permissions opens | row not found on the hub screen |
-| ❌ | Guides opens from More | row missing |
-| ✅ | Guide search filters results | typed 'wifi' |
-| ❌ | Run full check button present | primary button not found |
-| ⏭️ | Export opens the system share sheet | no saved report on a freshly cleared profile |
+| ✅ | Internet quality back returns to Network |  |
+| ✅ | Indoor survey opens |  |
+| ✅ | Indoor survey back returns to Network |  |
+| ✅ | Troubleshoot opens |  |
+| ✅ | Troubleshoot back returns to Network |  |
+| ✅ | Guides opens |  |
+| ✅ | Guides back returns to More |  |
+| ✅ | Assistant opens |  |
+| ✅ | Assistant back returns to More |  |
+| ✅ | Methodology opens |  |
+| ✅ | Methodology back returns to More |  |
+| ✅ | Settings opens |  |
+| ✅ | Settings back returns to More |  |
+| ✅ | Privacy & permissions opens |  |
+| ✅ | Privacy & permissions back returns to More |  |
+| ✅ | Guide detail opens | battery-health-decline |
+| ❌ | Guide search filters results | no matching result after typing |
+| ℹ️ | Permission dialog shown | no request was needed on this emulator image |
+| ✅ | Full check reports progress or results | on-screen measurement text present |
+| ✅ | Export opens the system share sheet | No recommended people to share with |
+| ✅ | Settings save round-trips | confirmation shown |
 | ℹ️ | System dark mode captured | the app must stay light; compare 01-dashboard |
 | ✅ | Wide layout still renders the dashboard | 1600x1000 @ 160 dpi (800x500 dp) |
 | ✅ | No uncaught exceptions in logcat | clean run |
@@ -75,6 +84,16 @@
 - `11-cellular-diagnostics.png`
 - `12-wi-fi-diagnostics.png`
 - `13-internet-quality.png`
+- `14-indoor-survey.png`
+- `15-troubleshoot.png`
+- `16-guides.png`
+- `17-assistant.png`
+- `18-methodology.png`
+- `19-settings.png`
+- `20-privacy-permissions.png`
+- `24-guide-detail.png`
 - `23-guides-search.png`
+- `26-full-check.png`
+- `27-export-sheet.png`
 - `28-system-dark-mode.png`
 - `29-wide-layout.png`

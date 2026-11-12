@@ -8,7 +8,7 @@
     {
       "status": "pass",
       "name": "Install APK",
-      "detail": "1054062 bytes, runtime permissions granted"
+      "detail": "1054826 bytes, runtime permissions granted"
     },
     {
       "status": "pass",
@@ -151,64 +151,109 @@
       "detail": ""
     },
     {
-      "status": "fail",
+      "status": "pass",
       "name": "Internet quality back returns to Network",
-      "detail": "hub title missing after back"
-    },
-    {
-      "status": "fail",
-      "name": "Indoor survey opens",
-      "detail": "row not found on the hub screen"
-    },
-    {
-      "status": "fail",
-      "name": "Troubleshoot opens",
-      "detail": "row not found on the hub screen"
-    },
-    {
-      "status": "fail",
-      "name": "Guides opens",
-      "detail": "row not found on the hub screen"
-    },
-    {
-      "status": "fail",
-      "name": "Assistant opens",
-      "detail": "row not found on the hub screen"
-    },
-    {
-      "status": "fail",
-      "name": "Methodology opens",
-      "detail": "row not found on the hub screen"
-    },
-    {
-      "status": "fail",
-      "name": "Settings opens",
-      "detail": "row not found on the hub screen"
-    },
-    {
-      "status": "fail",
-      "name": "Privacy & permissions opens",
-      "detail": "row not found on the hub screen"
-    },
-    {
-      "status": "fail",
-      "name": "Guides opens from More",
-      "detail": "row missing"
+      "detail": ""
     },
     {
       "status": "pass",
-      "name": "Guide search filters results",
-      "detail": "typed 'wifi'"
+      "name": "Indoor survey opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Indoor survey back returns to Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Troubleshoot opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Troubleshoot back returns to Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Guides opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Guides back returns to More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Assistant opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Assistant back returns to More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Methodology opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Methodology back returns to More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Settings opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Settings back returns to More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Privacy & permissions opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Privacy & permissions back returns to More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Guide detail opens",
+      "detail": "battery-health-decline"
     },
     {
       "status": "fail",
-      "name": "Run full check button present",
-      "detail": "primary button not found"
+      "name": "Guide search filters results",
+      "detail": "no matching result after typing"
     },
     {
-      "status": "skip",
+      "status": "soft",
+      "name": "Permission dialog shown",
+      "detail": "no request was needed on this emulator image"
+    },
+    {
+      "status": "pass",
+      "name": "Full check reports progress or results",
+      "detail": "on-screen measurement text present"
+    },
+    {
+      "status": "pass",
       "name": "Export opens the system share sheet",
-      "detail": "no saved report on a freshly cleared profile"
+      "detail": "No recommended people to share with"
+    },
+    {
+      "status": "pass",
+      "name": "Settings save round-trips",
+      "detail": "confirmation shown"
     },
     {
       "status": "soft",
@@ -249,12 +294,22 @@
     "11-cellular-diagnostics.png",
     "12-wi-fi-diagnostics.png",
     "13-internet-quality.png",
+    "14-indoor-survey.png",
+    "15-troubleshoot.png",
+    "16-guides.png",
+    "17-assistant.png",
+    "18-methodology.png",
+    "19-settings.png",
+    "20-privacy-permissions.png",
+    "24-guide-detail.png",
     "23-guides-search.png",
+    "26-full-check.png",
+    "27-export-sheet.png",
     "28-system-dark-mode.png",
     "29-wide-layout.png"
   ],
   "notes": [
     "Device: sdk_gphone64_x86_64 \u00b7 Android 14 (API 34) \u00b7 emulator, not physical hardware",
-    "Foreground window after launch: mCurrentFocus=Window{25b0fb9 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
+    "Foreground window after launch: mCurrentFocus=Window{b314c16 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
   ]
 }
