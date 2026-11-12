@@ -8,7 +8,7 @@
     {
       "status": "pass",
       "name": "Install APK",
-      "detail": "1055034 bytes, runtime permissions granted"
+      "detail": "1055062 bytes, runtime permissions granted"
     },
     {
       "status": "pass",
@@ -227,6 +227,21 @@
     },
     {
       "status": "pass",
+      "name": "Permission request shows the system prompt",
+      "detail": "Allow PhoneCare Diagnostics to access this device\u2019s location?"
+    },
+    {
+      "status": "pass",
+      "name": "Permission granted from the prompt",
+      "detail": "tapped the system dialog"
+    },
+    {
+      "status": "fail",
+      "name": "Read cellular now button present",
+      "detail": "button not found on the Cellular screen"
+    },
+    {
+      "status": "pass",
       "name": "Guide detail opens",
       "detail": "battery-health-decline"
     },
@@ -301,6 +316,7 @@
     "18-methodology.png",
     "19-settings.png",
     "20-privacy-permissions.png",
+    "25-permission-dialog.png",
     "24-guide-detail.png",
     "26-full-check.png",
     "27-export-sheet.png",
@@ -309,6 +325,6 @@
   ],
   "notes": [
     "Device: sdk_gphone64_x86_64 \u00b7 Android 14 (API 34) \u00b7 emulator, not physical hardware",
-    "Foreground window after launch: mCurrentFocus=Window{ec13b08 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
+    "Foreground window after launch: mCurrentFocus=Window{a4e0806 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
   ]
 }

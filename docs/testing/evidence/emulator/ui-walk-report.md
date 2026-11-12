@@ -1,7 +1,7 @@
 # Android UI walk — emulator run
 
-- Steps: **55** · pass 52 · fail 1 · notes 2 · skipped 0
-- Screenshots: **29** in this folder
+- Steps: **58** · pass 54 · fail 2 · notes 2 · skipped 0
+- Screenshots: **30** in this folder
 - Device: Device: sdk_gphone64_x86_64 · Android 14 (API 34) · emulator, not physical hardware
 
 > Produced by `native/android/ui-walk.py` on a GitHub Actions emulator. This is emulator
@@ -10,7 +10,7 @@
 | Result | Step | Detail |
 | --- | --- | --- |
 | ✅ | Emulator finished booting | 1 |
-| ✅ | Install APK | 1055034 bytes, runtime permissions granted |
+| ✅ | Install APK | 1055062 bytes, runtime permissions granted |
 | ✅ | Launch MainActivity | Complete |
 | ✅ | Dashboard renders | app bar title and content present |
 | ✅ | Tab Home → Dashboard |  |
@@ -54,6 +54,9 @@
 | ✅ | Settings back returns to More |  |
 | ✅ | Privacy & permissions opens |  |
 | ✅ | Privacy & permissions back returns to More |  |
+| ✅ | Permission request shows the system prompt | Allow PhoneCare Diagnostics to access this device’s location? |
+| ✅ | Permission granted from the prompt | tapped the system dialog |
+| ❌ | Read cellular now button present | button not found on the Cellular screen |
 | ✅ | Guide detail opens | battery-health-decline |
 | ❌ | Guide search field present | no EditText on the Guides screen |
 | ℹ️ | Permission dialog shown | no request was needed on this emulator image |
@@ -91,6 +94,7 @@
 - `18-methodology.png`
 - `19-settings.png`
 - `20-privacy-permissions.png`
+- `25-permission-dialog.png`
 - `24-guide-detail.png`
 - `26-full-check.png`
 - `27-export-sheet.png`
