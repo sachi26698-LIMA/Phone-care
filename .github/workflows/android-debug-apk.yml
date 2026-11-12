@@ -108,6 +108,9 @@ jobs:
 
           ls -l "$APK"
           sha256sum "$APK" | tee apk-sha256.txt
+          SHA=$(sha256sum "$APK" | cut -d' ' -f1)
+          SIZE=$(stat -c%s "$APK")
+          echo "::notice title=APK artifact::sha256=$SHA size=$SIZE bytes path=$APK"
 
           "$BT/aapt2" dump badging "$APK" | tee apk-badging.txt || true
           unzip -l "$APK" | tee apk-contents.txt || true
