@@ -1,7 +1,7 @@
 # Android UI walk — emulator run
 
-- Steps: **58** · pass 54 · fail 2 · notes 2 · skipped 0
-- Screenshots: **30** in this folder
+- Steps: **58** · pass 55 · fail 1 · notes 2 · skipped 0
+- Screenshots: **31** in this folder
 - Device: Device: sdk_gphone64_x86_64 · Android 14 (API 34) · emulator, not physical hardware
 
 > Produced by `native/android/ui-walk.py` on a GitHub Actions emulator. This is emulator
@@ -55,8 +55,8 @@
 | ✅ | Privacy & permissions opens |  |
 | ✅ | Privacy & permissions back returns to More |  |
 | ✅ | Permission request shows the system prompt | Allow PhoneCare Diagnostics to access this device’s location? |
-| ✅ | Permission granted from the prompt | tapped the system dialog |
-| ❌ | Read cellular now button present | button not found on the Cellular screen |
+| ✅ | Permissions granted from the prompts | 2 system prompt(s) accepted |
+| ✅ | Cellular read returns values or a stated reason | Modem-reported values. Unavailable stays unavailable. |
 | ✅ | Guide detail opens | battery-health-decline |
 | ❌ | Guide search field present | no EditText on the Guides screen |
 | ℹ️ | Permission dialog shown | no request was needed on this emulator image |
@@ -95,6 +95,7 @@
 - `19-settings.png`
 - `20-privacy-permissions.png`
 - `25-permission-dialog.png`
+- `26-cellular-read.png`
 - `24-guide-detail.png`
 - `26-full-check.png`
 - `27-export-sheet.png`

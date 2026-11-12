@@ -1,6 +1,6 @@
 ++ date -u +%FT%TZ
-+ echo '== provisioning 2026-11-12T16:26:09Z'
-== provisioning 2026-11-12T16:26:09Z
++ echo '== provisioning 2026-11-12T16:40:48Z'
+== provisioning 2026-11-12T16:40:48Z
 + echo SDK=/usr/local/lib/android/sdk
 SDK=/usr/local/lib/android/sdk
 + adb version
@@ -8,8 +8,8 @@ Android Debug Bridge version 1.0.41
 Version 37.0.1-15733141
 Installed as /usr/local/lib/android/sdk/platform-tools/adb
 Running on Linux 7.0.0-1017-azure (x86_64)
-+ yes
 + timeout 300 sdkmanager --licenses
++ yes
 yes: standard output: Broken pipe
 + timeout 900 sdkmanager --install platform-tools emulator 'system-images;android-34;google_apis;x86_64'
 + tail -4
@@ -46,8 +46,8 @@ walk
 + adb start-server
 * daemon not running; starting now at tcp:5037
 * daemon started successfully
-+ echo 'emulator pid 2652'
-emulator pid 2652
++ echo 'emulator pid 2417'
+emulator pid 2417
 + nohup /usr/local/lib/android/sdk/emulator/emulator -avd walk -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -no-metrics -camera-back none -camera-front none
 ++ seq 1 60
 + for i in $(seq 1 60)
@@ -80,6 +80,11 @@ emulator-5554	device
 + '[' '' = 1 ']'
 + sleep 5
 + for i in $(seq 1 120)
+++ tr -d '\r'
+++ adb shell getprop sys.boot_completed
++ '[' '' = 1 ']'
++ sleep 5
++ for i in $(seq 1 120)
 ++ adb shell getprop sys.boot_completed
 ++ tr -d '\r'
 + '[' '' = 1 ']'
@@ -87,26 +92,11 @@ emulator-5554	device
 + for i in $(seq 1 120)
 ++ adb shell getprop sys.boot_completed
 ++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ tr -d '\r'
-++ adb shell getprop sys.boot_completed
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ tr -d '\r'
-++ adb shell getprop sys.boot_completed
 + '[' 1 = 1 ']'
 + booted=1
 + break
-+ echo 'boot_completed=1 after ~30s'
-boot_completed=1 after ~30s
++ echo 'boot_completed=1 after ~20s'
+boot_completed=1 after ~20s
 + adb shell wm dismiss-keyguard
 + echo '== emulator log tail'
 == emulator log tail
@@ -123,30 +113,30 @@ INFO         |   androidboot.vbmeta.digest=451e57ed688ff746d2c636d52169ade253e2b
 INFO         |   androidboot.vbmeta.hash_alg=sha256
 INFO         |   androidboot.vbmeta.size=6656
 INFO         |   androidboot.veritymode=enforcing
-WARNING: cannnot unmap ptr 0x7fed7c001000 as it is in the protected range from 0x7fecdc000000 to 0x7fed7c200000
+WARNING: cannnot unmap ptr 0x7efdcc001000 as it is in the protected range from 0x7efd2c000000 to 0x7efdcc200000
 INFO         | Monitoring duration of emulator setup.
 WARNING      | The emulator now requires a signed jwt token for gRPC access! Use the -grpc flag if you really want an open unprotected grpc port
 INFO         | Using security allow list from: /usr/local/lib/android/sdk/emulator/lib/emulator_access.json
-INFO         | The active JSON Web Key Sets can be found here: /run/user/1001/avd/running/2652/jwks/adb556af-d05b-41b2-83c2-44de19f1971b/active.jwk
-INFO         | Scanning /run/user/1001/avd/running/2652/jwks/adb556af-d05b-41b2-83c2-44de19f1971b for jwk keys.
+INFO         | The active JSON Web Key Sets can be found here: /run/user/1001/avd/running/2417/jwks/fa1cef5c-82b4-4aca-a522-de96a0ade477/active.jwk
+INFO         | Scanning /run/user/1001/avd/running/2417/jwks/fa1cef5c-82b4-4aca-a522-de96a0ade477 for jwk keys.
 INFO         | Started GRPC server at 127.0.0.1:8554, security: Local, auth: +token
-INFO         | Advertising in: /run/user/1001/avd/running/pid_2652.ini
-INFO         | Activated packet streamer for bluetooth emulation
+INFO         | Advertising in: /run/user/1001/avd/running/pid_2417.ini
 INFO         | Successfully initialized netsim WiFi
+INFO         | Activated packet streamer for bluetooth emulation
 INFO         | Setting display: 0 configuration to: 1080x2340, dpi: 440x440 
 INFO         | setDisplayActiveConfig: id:0, 1080x2340
 INFO         | emulatorSetupEnvironment: Environment scene is not required
 USER_INFO    | Emulator is performing a full startup. This may take upto two minutes, or more.
 WARNING      | Failed to process .ini file /home/runner/.android/emu-update-last-check.ini for reading.
 WARNING      | Failed to process .ini file /home/runner/.android/emu-update-last-check.ini for reading.
-INFO         | Boot completed in 37426 ms
+INFO         | Boot completed in 28916 ms
 INFO         | Increasing screen off timeout, logcat buffer size to 2M.
 cwd=/home/runner/work/Phone-care/Phone-care python=3.12.3 apk=app/build/outputs/apk/debug/app-debug.apk
 adb=Android Debug Bridge version 1.0.41
 [PASS] Emulator finished booting — 1
 [PASS] Install APK — 1055062 bytes, runtime permissions granted
 [PASS] Launch MainActivity — Complete
-foreground: mCurrentFocus=Window{a4e0806 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}
+foreground: mCurrentFocus=Window{3d28f93 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}
 [PASS] Dashboard renders — app bar title and content present
 [PASS] Tab Home → Dashboard
 [PASS] Tab Diagnose → Diagnostics
@@ -190,9 +180,8 @@ foreground: mCurrentFocus=Window{a4e0806 u0 app.phonecare.diagnostics/app.phonec
 [PASS] Privacy & permissions opens
 [PASS] Privacy & permissions back returns to More
 [PASS] Permission request shows the system prompt — Allow PhoneCare Diagnostics to access this device’s location?
-[PASS] Permission granted from the prompt — tapped the system dialog
-[FAIL] Read cellular now button present — button not found on the Cellular screen
-::error title=UI walk::Read cellular now button present — button not found on the Cellular screen
+[PASS] Permissions granted from the prompts — 2 system prompt(s) accepted
+[PASS] Cellular read returns values or a stated reason — Modem-reported values. Unavailable stays unavailable.
 [PASS] Guide detail opens — battery-health-decline
 [FAIL] Guide search field present — no EditText on the Guides screen
 ::error title=UI walk::Guide search field present — no EditText on the Guides screen
@@ -204,4 +193,4 @@ foreground: mCurrentFocus=Window{a4e0806 u0 app.phonecare.diagnostics/app.phonec
 [PASS] Wide layout still renders the dashboard — 1600x1000 @ 160 dpi (800x500 dp)
 [PASS] No uncaught exceptions in logcat — clean run
 [PASS] App process still alive at the end
-::notice title=UI walk::steps=58 pass=54 fail=2 soft=2 skip=0 shots=30
+::notice title=UI walk::steps=58 pass=55 fail=1 soft=2 skip=0 shots=31

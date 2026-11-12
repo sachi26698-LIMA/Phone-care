@@ -232,13 +232,13 @@
     },
     {
       "status": "pass",
-      "name": "Permission granted from the prompt",
-      "detail": "tapped the system dialog"
+      "name": "Permissions granted from the prompts",
+      "detail": "2 system prompt(s) accepted"
     },
     {
-      "status": "fail",
-      "name": "Read cellular now button present",
-      "detail": "button not found on the Cellular screen"
+      "status": "pass",
+      "name": "Cellular read returns values or a stated reason",
+      "detail": "Modem-reported values. Unavailable stays unavailable."
     },
     {
       "status": "pass",
@@ -317,6 +317,7 @@
     "19-settings.png",
     "20-privacy-permissions.png",
     "25-permission-dialog.png",
+    "26-cellular-read.png",
     "24-guide-detail.png",
     "26-full-check.png",
     "27-export-sheet.png",
@@ -325,6 +326,6 @@
   ],
   "notes": [
     "Device: sdk_gphone64_x86_64 \u00b7 Android 14 (API 34) \u00b7 emulator, not physical hardware",
-    "Foreground window after launch: mCurrentFocus=Window{a4e0806 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
+    "Foreground window after launch: mCurrentFocus=Window{3d28f93 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
   ]
 }
