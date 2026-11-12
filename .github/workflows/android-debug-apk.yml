@@ -126,7 +126,7 @@ jobs:
             fi
           }
           expect apk-badging.txt "package: name='app.phonecare.diagnostics'" "package name"
-          expect apk-badging.txt "sdkVersion:'26'" "minSdk 26"
+          expect apk-badging.txt "minSdkVersion:'26'" "minSdk 26"
           expect apk-badging.txt "targetSdkVersion:'35'" "targetSdk 35"
           expect apk-badging.txt "launchable-activity: name='app.phonecare.diagnostics.MainActivity'" "launcher activity"
           expect apk-contents.txt "classes.dex" "classes.dex in the archive"
