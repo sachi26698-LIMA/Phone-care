@@ -150,11 +150,11 @@ export function StorageView() {
               .filter((r) => ["origin-usage", "persisted", "local", "indexeddb"].includes(r.key))
               .map((r) => (
                 <div key={r.key} className="flex items-start justify-between gap-3 border-b border-line-soft pb-2.5 last:border-0">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[12.5px] font-medium text-fg">{r.label}</p>
                     <p className="mt-0.5 text-[10.5px] leading-relaxed text-faint">{r.source}</p>
                   </div>
-                  <p className="shrink-0 text-right text-[12.5px] font-medium text-muted">
+                  <p className="max-w-[58%] shrink text-right text-[12.5px] font-medium text-muted">
                     {r.value ?? "Unavailable"}
                   </p>
                 </div>

@@ -419,6 +419,64 @@ thermal frame-reading contradiction; changed "Calculating…"/"Sampling…" plac
 | Console | `pageerror` + console error capture across all flows | ✅ 0 application errors |
 | No dark surfaces | visual review of every route | ✅ only the display-test overlay is dark by design |
 
+### 7.7 Real-device testing — what has actually run
+
+Rules: a result is only labelled **Physical** when a person ran it on the named phone or desktop.
+Emulation is layout evidence only; it is never sensor evidence.
+
+| Target | Engine | Status in this session | Evidence |
+| --- | --- | --- | --- |
+| Desktop Chrome | Blink | **Engine** — real Chromium, headless, production build | Full scan 7/9, touch N/A, wake lock declined, persistence granted |
+| Android Chrome | Blink | **Emulated** — Android UA + 412×915 @2.6 + touch | Layout, 40/40 touch trace, orientation `portrait-primary`, 0 overflow |
+| iPhone Safari | WebKit | **Emulated** — iOS UA + 393×852 @3 on Chromium | Layout only. **Not a WebKit result** |
+| Android Firefox | Gecko | **UA only** — not runnable here | Never reported as Firefox |
+| Desktop Firefox / Safari | Gecko / WebKit | **BLOCKED** — engine download unreachable in the sandbox | Not tested |
+
+Additional **simulated** runs (API removed or forced to reject before page load) prove the fallback
+UI: Battery Status deleted → battery module `unavailable`, "This browser does not expose battery
+data", badge **Unsupported**; `navigator.storage` deleted → origin usage unavailable, persistence
+card **Unsupported here**; `persist()` → `false` → **Declined**; `persist()` → `NotAllowedError` →
+**Blocked**; `wakeLock` deleted → **Unsupported** + disabled button; `wakeLock.request()` stubbed to
+resolve → **Awake**, release returns to "Hold awake". No console errors in any scenario.
+
+The manual checklist for the five remaining physical targets lives in
+[`docs/DEVICE_TESTING.md`](docs/DEVICE_TESTING.md) (per-module steps, permission-denial paths,
+accessibility, and a results table to fill in).
+
+### 7.8 Browser API compatibility matrix
+
+Feature-detected per session; every gap has a visible fallback rather than a fabricated number.
+
+| API | Chrome / Edge / Samsung (Android) | Firefox | Safari (iOS / macOS) | What PhoneCare does when missing |
+| --- | --- | --- | --- | --- |
+| Battery Status (`getBattery`) | ✅ | ❌ removed in v52 | ❌ never shipped | Module `unavailable`; explains why and offers a capacity-based estimate |
+| `storage.estimate()` | ✅ | ✅ | ✅ (recent versions) | Origin usage shown as unavailable, never guessed |
+| `storage.persist()` | ✅ (may auto-decide) | ✅ (usually silent grant) | ⚠️ version-dependent | Explanatory card, then Persistent / Declined / Blocked / Unsupported |
+| Screen Wake Lock | ✅ | ⚠️ behind flag | ✅ 16.4+ | "Unsupported here" badge, disabled request button, test still usable |
+| Network Information | ✅ | ❌ | ❌ | `effectiveType` row reads unavailable; measured latency/throughput still used |
+| `deviceMemory` | ✅ (capped at 8) | ❌ | ❌ | Falls back to `hardwareConcurrency`, labelled coarse |
+| `hardwareConcurrency` | ✅ | ✅ | ✅ | Shown as reported thread count |
+| Screen Orientation + `type`/`angle` | ✅ | ✅ | ✅ | — |
+| `orientation.lock()` | ✅ (fullscreen/installed) | ❌ | ❌ on web | Button hidden when unsupported; no error toast |
+| Pointer Events | ✅ | ✅ | ✅ | Mouse fallback on non-touch desktops |
+| Touch (multi) | ✅ | ✅ | ✅ | 40-zone grid works with mouse as well |
+| WebGL / WebGL2 | ✅ | ✅ | ✅ | Compatibility row marks it unsupported instead of faking a GPU |
+| Web Bluetooth / NFC / File System Access | ✅ (Android) | ❌ | ❌ | Compatibility rows only; no feature pretends to exist |
+
+### 7.9 Security standards
+
+| Control | Implementation | Verified |
+| --- | --- | --- |
+| Content Security Policy | `default-src 'self'`, no inline script beyond `'unsafe-inline'` needed by the Next bootstrap, `object-src 'none'`, `frame-ancestors 'self'` | Header present on every route; console clean |
+| Transport | HSTS `max-age=63072000; includeSubDomains; preload` | Header present |
+| Framing / sniffing | `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff` | Present |
+| Referrer / capabilities | `strict-origin-when-cross-origin`; `camera=(), microphone=(), geolocation=()` | Present |
+| Injection surface | No `dangerouslySetInnerHTML`, `eval`, or `new Function` anywhere | `grep` clean |
+| Secrets | Assistant key read only in route handlers; `NEXT_PUBLIC_*` holds the site URL only | Client bundle contains no key path |
+| Abuse limits | Download cap 8 MB, upload cap 4 MB, assistant 12 req/min + body caps | Verified in earlier QA |
+| Data residency | Diagnostics live in `localStorage` only; no cookies, no third-party requests, no analytics | Network panel clean |
+| Dependencies | `npm audit --omit=dev` | 0 vulnerabilities |
+
 ---
 
 ## 8. Deployment readiness (Vercel)
@@ -429,10 +487,12 @@ thermal frame-reading contradiction; changed "Calculating…"/"Sampling…" plac
 | Runtime | Node.js route handlers; no edge-only APIs |
 | Env vars | `NEXT_PUBLIC_SITE_URL` (metadata), optional `ASSISTANT_API_URL`, `ASSISTANT_API_KEY`, `ASSISTANT_MODEL`. See `.env.example` |
 | Secrets | Only server-side; never referenced in client components |
-| Security headers | nosniff, frame options, referrer policy, permissions policy, HSTS |
+| Security headers | CSP, nosniff, frame options, referrer policy, permissions policy, HSTS |
 | SEO | Metadata templates, per-page descriptions, sitemap, robots, canonical guide URLs |
 | Performance | Static-first pages; client islands only for diagnostic views; self-hosted fonts |
-| Verification | **Local build + runtime verified. Live Vercel deployment has not been performed — do not claim it has.** |
+| Health probe | `GET /api/health` returns status, assistant mode (local or enhanced), site, runtime and time with `no-store` |
+| Runbook | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — env vars, deploy steps, post-deploy curls, rollback |
+| Verification | **Local build + runtime verified (build, 29 routes, headers, health probe). Live Vercel deployment has not been performed — do not claim it has.** |
 
 ---
 
@@ -458,6 +518,10 @@ thermal frame-reading contradiction; changed "Calculating…"/"Sampling…" plac
 - MDN — `NetworkInformation.rtt` (0 means unknown): https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/rtt
 - web.dev — Persistent storage: https://web.dev/articles/persistent-storage
 - Chrome for Developers — Page visibility and `requestAnimationFrame` throttling: https://developer.chrome.com/docs/web-platform/page-lifecycle-api
+- MDN — Content-Security-Policy: https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+- MDN — Screen Orientation API (`lock()` availability): https://developer.mozilla.org/en-US/docs/Web/API/Screen_Orientation_API
+- MDN — Network Information API availability: https://developer.mozilla.org/en-US/docs/Web/API/Network_Information_API
+- React — Hydration mismatch (`onRecoverableError` / text mismatch): https://react.dev/reference/react-dom/client/hydrateRoot
 
 ---
 
@@ -506,3 +570,7 @@ contrast and overflow verification. Remaining: real-device pass on Android/iOS a
 | 2026-11-09 | Display-test overlay stays black | A dead-pixel/black-field test must be able to render true black; documented as the single intentional dark surface |
 | 2026-11-09 | Only two optional permissions implemented | Persistence and wake lock add real value; any other prompt would imply hardware access the web cannot give |
 | 2026-11-09 | Unavailable beats implausible when sampling is throttled | 4 Hz refresh / 4 fps cadence are background-tab artifacts; publishing them would be a fabricated measurement |
+| 2026-11-09 | Touch digitiser count is read after mount | Reading `navigator.maxTouchPoints` during render made server HTML ("no digitiser") disagree with the first client paint on phones — the source of React error #418 |
+| 2026-11-09 | `hasBatteryApi()` requires a callable function | `"getBattery" in navigator` was true for browsers exposing the property as `undefined`, so the badge said Supported while the readings said unavailable |
+| 2026-11-09 | Modules labelled by dominant evidence, not "measured" count | A thermal score built from estimated signals displayed "0 measured"; the report now says "N estimated" |
+| 2026-11-09 | CSP added with `'unsafe-inline'` for scripts only | Next injects an inline bootstrap; a nonce pipeline needs middleware and is deferred. Everything else is `'self'` |

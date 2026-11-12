@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Fingerprint, Hand, RotateCcw, Save, ShieldAlert } from "lucide-react";
 import { ModuleHeader } from "@/components/diagnostics/module-header";
 import { ModuleResultPanel } from "@/components/diagnostics/module-result";
@@ -31,10 +31,16 @@ export function TouchLab() {
 
   const activePointers = useRef<Set<number>>(new Set());
   const gridRef = useRef<HTMLDivElement>(null);
-  const supportsTouch =
-    typeof navigator !== "undefined" && typeof navigator.maxTouchPoints === "number"
-      ? navigator.maxTouchPoints
-      : 0;
+  // Read after mount: reading navigator during render would make the server HTML
+  // ("no digitiser") disagree with the first client render on a phone.
+  const [supportsTouch, setSupportsTouch] = useState<number | null>(null);
+  useEffect(() => {
+    setSupportsTouch(
+      typeof navigator !== "undefined" && typeof navigator.maxTouchPoints === "number"
+        ? navigator.maxTouchPoints
+        : 0,
+    );
+  }, []);
 
   const coveragePct = useMemo(() => Math.round((covered.size / TOTAL) * 100), [covered.size]);
 
@@ -129,8 +135,12 @@ export function TouchLab() {
                 Drag with one finger, then try two or three at once
               </p>
             </div>
-            <Badge tone={supportsTouch > 0 ? "accent" : "neutral"}>
-              {supportsTouch > 0 ? `${supportsTouch} touch points` : "No touch digitiser"}
+            <Badge tone={supportsTouch && supportsTouch > 0 ? "accent" : "neutral"}>
+              {supportsTouch == null
+                ? "Detecting digitiser…"
+                : supportsTouch > 0
+                  ? `${supportsTouch} touch point${supportsTouch === 1 ? "" : "s"}`
+                  : "No touch digitiser"}
             </Badge>
           </CardHeader>
           <CardContent>

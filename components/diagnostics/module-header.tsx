@@ -1,11 +1,11 @@
 "use client";
 
-import { EvidenceBadge } from "@/components/ui/evidence-badge";
 import { RunModuleButton } from "@/components/diagnostics/run-module-button";
 import { Badge } from "@/components/ui/badge";
 import { useDiagnostics } from "@/context/diagnostic-provider";
 import { MODULE_MAP } from "@/lib/modules";
 import { ModuleIcon } from "@/components/ui/icon";
+import { Info } from "lucide-react";
 import type { ModuleId } from "@/lib/types";
 import { formatTimestamp, scoreBand } from "@/lib/utils";
 
@@ -60,7 +60,9 @@ export function ModuleHeader({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-line-soft bg-white px-3.5 py-2.5">
-        <EvidenceBadge level="measured" showLabel={false} />
+        <span className="grid size-5 shrink-0 place-items-center rounded-full bg-purple/10 text-purple">
+          <Info className="size-3.5" aria-hidden="true" />
+        </span>
         <p className="text-[11.5px] leading-relaxed text-muted">
           <span className="font-medium text-fg">Evidence policy: </span>
           {meta.evidenceNote}

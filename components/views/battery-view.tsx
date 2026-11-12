@@ -112,7 +112,7 @@ export function BatteryView() {
                 Battery Status API · Chromium browsers only
               </p>
             </div>
-            {supported ? <Badge tone="good">Supported</Badge> : <Badge tone="neutral">Unavailable</Badge>}
+            {supported ? <Badge tone="good">Supported</Badge> : <Badge tone="warn">Unsupported</Badge>}
           </CardHeader>
           <CardContent>
             {supported === null ? (
@@ -142,9 +142,9 @@ export function BatteryView() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-end gap-4">
+                <div className="flex flex-wrap items-end gap-4">
                   <div className="relative">
-                    <svg width="104" height="56" viewBox="0 0 104 56" aria-hidden="true">
+                    <svg width="96" height="52" viewBox="0 0 104 56" className="max-w-full" aria-hidden="true">
                       <rect x="2" y="6" width="88" height="44" rx="9" fill="none" stroke="var(--color-line)" strokeWidth="3" />
                       <rect x="93" y="21" width="7" height="14" rx="2" fill="var(--color-line)" />
                       <rect

@@ -81,13 +81,18 @@ environment variables; the assistant falls back to a deterministic local engine.
 - Diagnostics run on-device; readings are never uploaded.
 - Scan results live in `localStorage` and can be cleared from the report page.
 - No third-party analytics, ads, fonts or IP-lookup services.
-- Security headers set in `next.config.ts`; API payloads capped; assistant proxy
-  rate-limited and key-isolated on the server.
+- Content-Security-Policy, HSTS, frame, referrer and permissions policies set in
+  `next.config.ts`; API payloads capped; assistant proxy rate-limited and key-isolated
+  on the server. `npm audit --omit=dev` reports no vulnerabilities.
 
 ## Documentation
 
 - [`AI_BRAIN.md`](./AI_BRAIN.md) — research log, competitor analysis, architecture
-  decisions, QA results and roadmap.
+  decisions, QA results, compatibility matrix, security standards and roadmap.
+- [`docs/DEVICE_TESTING.md`](./docs/DEVICE_TESTING.md) — real-device checklist and the
+  results table to fill in per phone/browser.
+- [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — Vercel setup, environment variables,
+  post-deploy checks and rollback.
 
 ## Verification
 
@@ -103,8 +108,23 @@ Checked against a local production build (`next build` + `next start`) driven by
 - 113 text nodes measured against WCAG 2.2 contrast (0 failures on the light theme);
 - API caps enforced (5 MB upload → 413, download capped at 8 MB, assistant POST → 501 without a key).
 
-Numbers vary by machine and load. Full method, caveats and the one known transport artifact are in
-[`AI_BRAIN.md` §7](./AI_BRAIN.md).
+Phase 2 added a four-profile automation matrix:
+
+- desktop Chromium (real engine), Android-UA + touch emulation, iOS-UA emulation and a
+  Firefox-UA run — the latter two are **layout evidence only**, not WebKit or Gecko;
+- every profile: no horizontal overflow, no console errors, one `h1`, warm canvas
+  `#FAF7F3`, screen overlay opens and closes on Escape, persistence and wake-lock
+  states recorded;
+- fallback paths forced by removing each API: battery → *Unsupported*, storage →
+  *Unsupported here*, `persist()` false → *Declined*, `NotAllowedError` → *Blocked*,
+  no wake lock → disabled request, stubbed grant → *Awake* then *released*;
+- one real bug fixed: React hydration error #418 caused by reading
+  `navigator.maxTouchPoints` during render (plus the battery badge disagreeing with
+  its own readings).
+
+Physical iOS/Android/Firefox runs are still pending — see
+[`docs/DEVICE_TESTING.md`](./docs/DEVICE_TESTING.md). Numbers vary by machine and load. Full
+method, caveats and the one known transport artifact are in [`AI_BRAIN.md` §7](./AI_BRAIN.md).
 
 ## Status
 

@@ -180,8 +180,8 @@ export function AssistantView() {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1.55fr_1fr]">
-        <Card className="flex min-h-[560px] flex-col">
+      <div className="grid items-start gap-5 lg:grid-cols-[1.55fr_1fr]">
+        <Card className="flex min-h-[430px] flex-col">
           <CardHeader className="items-center border-b border-line-soft pb-4">
             <div className="flex items-center gap-2.5">
               <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-accent/25 to-violet/20 text-accent">

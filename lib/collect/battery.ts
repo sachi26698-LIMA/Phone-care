@@ -12,8 +12,13 @@ interface BatteryLike {
 
 export type BatteryApiAvailability = "supported" | "unsupported";
 
+type BatteryNavigator = Navigator & { getBattery?: () => Promise<BatteryLike> };
+
 export function hasBatteryApi(): boolean {
-  return typeof navigator !== "undefined" && "getBattery" in navigator;
+  // `in` alone is true when a browser exposes the property as undefined;
+  // require a callable function so the UI badge and the readings agree.
+  const nav = typeof navigator === "undefined" ? undefined : (navigator as BatteryNavigator);
+  return typeof nav?.getBattery === "function";
 }
 
 export async function readBattery(): Promise<BatteryLike | null> {

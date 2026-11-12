@@ -18,6 +18,23 @@ import { Button, LinkButton } from "@/components/ui/button";
 import { ScoreRing } from "@/components/ui/score-ring";
 import { EvidenceLegend } from "@/components/ui/evidence-badge";
 import { EmptyState, Note, ProgressBar } from "@/components/ui/misc";
+import type { ModuleResult } from "@/lib/types";
+
+/**
+ * "N measured" is misleading for modules whose score comes from inferred
+ * signals (thermal state is estimated). Label the dominant evidence instead.
+ */
+function evidenceLabel(result: ModuleResult | undefined): string {
+  if (!result?.completedAt) return "not run";
+  const count = (level: string) => result.readings.filter((r) => r.evidence === level).length;
+  const measured = count("measured");
+  if (measured > 0) return `${measured} measured`;
+  const estimated = count("estimated");
+  if (estimated > 0) return `${estimated} estimated`;
+  const user = count("user");
+  if (user > 0) return `${user} your input`;
+  return "unavailable";
+}
 import { useDiagnostics } from "@/context/diagnostic-provider";
 import { MODULES } from "@/lib/modules";
 import { summarizeHealth } from "@/lib/scoring";
@@ -146,7 +163,7 @@ export function ResultsView() {
       </div>
 
       <div className="print-plain space-y-5">
-        <div className="grid gap-5 lg:grid-cols-[1fr_1.4fr]">
+        <div className="grid items-start gap-5 lg:grid-cols-[1fr_1.4fr]">
           <Card>
             <CardHeader>
               <CardTitle>Health index</CardTitle>
@@ -208,9 +225,7 @@ export function ResultsView() {
                         {meta.title}
                       </Link>
                       <span className="hidden w-24 shrink-0 text-[10.5px] uppercase tracking-wide text-faint sm:block">
-                        {result?.completedAt
-                          ? `${result.readings.filter((r) => r.evidence === "measured").length} measured`
-                          : "not run"}
+                        {evidenceLabel(result)}
                       </span>
                       {result?.score != null ? (
                         <span
