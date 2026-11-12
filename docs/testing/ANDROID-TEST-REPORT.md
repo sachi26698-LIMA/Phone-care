@@ -98,7 +98,20 @@ Workflow: `.github/workflows/android-debug-apk.yml`. Latest run on `arena/45529a
 - pull-request run: [43191704293](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191704293) — **success**
 - every step green: checkout → JDK 17 → locate SDK → install `platforms;android-35` + `build-tools;35.0.0` → Gradle 8.9 → **unit tests** → **assembleDebug** → **verify** → upload
 
-### Artifact
+### Latest build with the hardening fixes
+
+Run [43197869825](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43197869825) — **success**
+
+| Field | Value |
+| --- | --- |
+| Unit tests | annotation reports **`tests=5 failures=0 skipped=0`** (4 schema tests + 1 test running the 27 engine checks) |
+| APK | `app-debug.apk`, **936,592 bytes** |
+| SHA-256 | `19a71bbf4361a3a1c85e864fe006e5f7d1f121c4d004527e57e5ef98110f94a2` |
+| Node/governance | no merge or deploy performed for this round |
+
+This is the APK to install for device validation: it contains the nine fixes listed in §3b.
+
+### Earlier artifact
 
 | Field | Value |
 | --- | --- |

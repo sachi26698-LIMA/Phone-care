@@ -23,7 +23,7 @@ the reason the app showed.
 | Android version / API level | NOT RUN |
 | Build fingerprint (`adb shell getprop ro.build.fingerprint`) | NOT RUN |
 | App version / versionCode | NOT RUN |
-| APK source (CI run id or local build) | NOT RUN |
+| APK source (CI run id or local build) | candidate: CI run 43197869825 (APK 936,592 B, tests=5/0) — tester must confirm |
 | APK SHA-256 (installed copy) | NOT RUN |
 | Install method (`adb install` / sideload) | NOT RUN |
 | SIM count / carriers | NOT RUN |
