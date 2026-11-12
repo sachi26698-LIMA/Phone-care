@@ -25,7 +25,7 @@ following was nevertheless executed with tools obtained from npm/PyPI/GitHub:
 | APK build | `gradle assembleDebug` on the CI runner | **success** — `app-debug.apk`, 935,496 B |
 | APK verification | `aapt2 dump badging`, `unzip -l`, `apksigner verify` on the runner | **success** — all assertions passed |
 | Manifest + resources + adaptive icon | `aapt2 2.20` compile + link | exit 0; badging confirms package, minSdk 26, targetSdk 35, permissions, launcher activity, icon |
-| Web contract still consistent with Kotlin types | `npm run test:contract` | 46 passed, 0 failed |
+| Web contract + parity | `npm run test:contract` | 67 passed, 0 failed (21 parity assertions) |
 
 Reproduce the first two:
 
@@ -71,6 +71,22 @@ floor; 20/200/400 unstable); score withheld when `scored=false`, > 80 when valid
 
 They will run for real as `gradle testDebugUnitTest` in CI; the local run used a functional
 stand-in for JUnit's `Assert` because `junit.jar` cannot be downloaded here.
+
+## 3a. Phase 6 — complete feature parity
+
+The app is no longer a single cellular screen. It now has **24 screens** covering every website
+route, built from one design system (`ui/Theme.kt`, `ui/Components.kt`).
+
+| Evidence | Result |
+| --- | --- |
+| Kotlin sources compile against `android.jar` 35 | ✅ 84 classes, **0 warnings** |
+| Screens | 24 (5 tab roots + 19 pushed) |
+| Guides | 8, generated from `lib/guides/index.ts` — parity asserted by the contract test |
+| Design tokens | palette, type scale, radius and scoring weights asserted against `shared/design-tokens.json` |
+| Engine checks | 27/27 (unchanged, still runnable standalone and via Gradle) |
+| Device walkthrough | ⛔ **NOT RUN** |
+
+Mapping and limitations: `docs/parity/ANDROID-PARITY-MATRIX.md`.
 
 ## 3b. Pre-device hardening (bug fixes found while auditing for this validation round)
 

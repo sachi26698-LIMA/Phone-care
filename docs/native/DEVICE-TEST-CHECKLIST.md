@@ -136,6 +136,12 @@ neither.
 
 ---
 
+## 7b. Feature-parity walkthrough
+
+Every screen in `docs/parity/ANDROID-PARITY-MATRIX.md` must open, render and go back cleanly. Note
+any screen that shows a placeholder instead of a real or explicitly-unavailable value — that is a
+defect, not a cosmetic issue.
+
 ## 8. Exit criteria
 
 The Android app may be called **operational** only when all of these hold:

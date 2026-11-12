@@ -291,6 +291,58 @@ const baseInput = {
   check("web report survives serialization validation", validateReport(serialized).ok === true);
 }
 
+
+// ---- cross-platform parity ----------------------------------------------
+// The Android app is a second implementation of the same product, so the shared
+// definitions must match the generated Kotlin, not merely look similar.
+{
+  const fsSync = require("node:fs");
+  const tokensPath = path.join(__dirname, "..", "shared", "design-tokens.json");
+  const tokens = JSON.parse(fsSync.readFileSync(tokensPath, "utf8"));
+  const androidRoot = path.join(__dirname, "..", "native", "android", "app", "src", "main", "java", "app", "phonecare", "diagnostics");
+  const themeKt = fsSync.readFileSync(path.join(androidRoot, "ui", "Theme.kt"), "utf8");
+
+  for (const [name, hex] of Object.entries(tokens.palette)) {
+    const literal = hex.replace("#", "").toUpperCase();
+    check(`Android token ${name} matches palette ${hex}`, themeKt.includes(`0xFF${literal}`));
+  }
+  check("Android type scale matches shared tokens", themeKt.includes("const val DISPLAY = 28f") && themeKt.includes("const val BODY = 14f"));
+  check("Android radius matches shared tokens", themeKt.includes("const val RADIUS_CARD = 16f"));
+
+  const { GUIDES } = require(path.join(__dirname, "..", ".contract-build", "guides", "index.js"));
+  const guidesKt = fsSync.readFileSync(path.join(androidRoot, "content", "Guides.kt"), "utf8");
+  check("guide count matches on both platforms", (guidesKt.match(/^    Guide\($/gm) || []).length === GUIDES.length);
+  for (const guide of GUIDES) {
+    check(
+      `Android guide slug+title matches website: ${guide.slug}`,
+      guidesKt.includes(`slug = "${guide.slug}"`) && guidesKt.includes(`title = "${guide.title.replace(/"/g, '\\"')}"`),
+    );
+  }
+  check("Android guide search matches title and summary", guidesKt.includes("fun search(query: String)"));
+
+  const schema = JSON.parse(fsSync.readFileSync(path.join(__dirname, "..", "shared", "diagnostics.schema.json"), "utf8"));
+  const measurementProps = schema.properties?.measurements?.items?.properties ?? {};
+  const evidenceEnum =
+    schema.$defs?.evidence?.enum ?? schema.definitions?.evidence?.enum ?? measurementProps.evidence?.enum;
+  const availabilityEnum =
+    schema.$defs?.availability?.enum ?? schema.definitions?.availability?.enum ?? measurementProps.availability?.enum;
+  if (Array.isArray(evidenceEnum)) {
+    check("token evidence list equals schema enum", JSON.stringify(tokens.evidence) === JSON.stringify(evidenceEnum));
+  }
+  if (Array.isArray(availabilityEnum)) {
+    check("token availability list equals schema enum", JSON.stringify(tokens.availability) === JSON.stringify(availabilityEnum));
+  }
+
+  const qualityKt = fsSync.readFileSync(path.join(androidRoot, "quality", "InternetQualityEngine.kt"), "utf8");
+  check(
+    "Android quality weights match shared tokens",
+    qualityKt.includes("download to 0.45") &&
+      qualityKt.includes("upload to 0.25") &&
+      qualityKt.includes("latencyScore to 0.2") &&
+      qualityKt.includes("stabilityScore to 0.1"),
+  );
+}
+
 // ---- summary ------------------------------------------------------------
 console.log(`contract tests: ${passed} passed, ${failures.length} failed`);
 if (failures.length > 0) {

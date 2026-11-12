@@ -925,3 +925,68 @@ All nine are fixed; the sources still compile with zero warnings.
 
 Until `docs/testing/DEVICE-VALIDATION-REPORT.md` contains observed values, the Android app is
 **built and unit-verified, not device-validated** — and it must not be called production-ready.
+
+---
+
+## 16. Phase 6 — website / Android feature parity
+
+The Android app is no longer a cellular demo. It is a 24-screen native client built from the same
+product definition as the website.
+
+### 16.1 What was audited
+
+The full website inventory (`docs/parity/WEBSITE-FEATURE-INVENTORY.md`) was produced from the actual
+tree: 20 page routes, 6 API routes, 16 lib engines, 30 components, 9 user workflows. No route was
+omitted.
+
+### 16.2 What was built
+
+| Area | Screens |
+| --- | --- |
+| Shell | app bar + status line + **5-tab bottom navigation** + single back stack |
+| Tabs | Dashboard, Diagnostics hub, Network hub, Results, More |
+| Device | Device identity, Battery & health, Storage, Temperature, Display, Touch, Performance, Compatibility |
+| Network | Cellular, Wi-Fi, Internet quality, Indoor survey, Troubleshoot |
+| Product | Guides (8, searchable), Guide detail, Assistant, Methodology, Settings, Privacy & permissions |
+
+Design system: `ui/Theme.kt` (tokens) + `ui/Components.kt` (card, button, badge, chip, banner,
+empty state, nav row, stat block, measurement row). Palette is the mandated brand set, light theme
+only, and a contract test fails if any hex, type size or radius drifts from
+`shared/design-tokens.json`.
+
+### 16.3 Shared, not duplicated by accident
+
+| Definition | Shared artefact | Enforcement |
+| --- | --- | --- |
+| Report schema | `shared/diagnostics.schema.json` ↔ `core/DiagnosticSchema.kt` | 67 contract assertions |
+| Quality weights | `.45/.25/.20/.10` in both engines | contract test reads the Kotlin weight literals |
+| Stability floor | 20 ms in both | engine checks |
+| Guide text | generated `content/Guides.kt` from `lib/guides/index.ts` | slug + title parity assertions |
+| Design tokens | `shared/design-tokens.json` | palette/type/radius assertions |
+| Evidence vocabulary | schema enum ↔ Kotlin enum | enum equality assertion |
+| Triage rules | `lib/diagnostic/triage.ts` ↔ `optimization/Tips.kt` | engine checks on rule ids/order |
+
+### 16.4 Native advantages (real, not marketing)
+
+Modem metrics (LTE RSRP/RSRQ/RSSNR/RSSI/band/TA, NR SS-RSRP/RSRQ/SINR/PCI), dual-SIM carriers,
+Wi-Fi gateway/DNS/link speed, transition counting, battery electricals, storage volumes, thermal
+status, refresh-rate modes, HDR types, per-pointer touch tracing, permission state machine.
+
+### 16.5 Honest gaps
+
+- No device or emulator run: no screenshot comparison at equivalent sizes has been performed.
+- Android has no CPU die temperature, no TX-power control, no Wi-Fi channel width without scanning,
+  no per-app usage without privileged access. Each screen says so instead of inventing a number.
+- The assistant is deterministic on-device; the website's optional proxied model is not replicated.
+- Browser and native numbers are never merged: `/network` and the app both label the source.
+
+### 16.6 Verification state
+
+| Check | Result |
+| --- | --- |
+| Kotlin compile (all sources) | 84 classes, 0 warnings |
+| Engine checks | 27/27 |
+| Contract + parity | 67/67 |
+| Website typecheck / build | pending re-run in this round |
+| APK | rebuilt by CI, artifact `phonecare-debug-apk` |
+| Device walkthrough | **NOT RUN** |

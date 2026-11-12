@@ -231,7 +231,49 @@ the screen-on duration; a percentage without it is not interpretable.
 
 ---
 
-## 9. Verdict rules
+## 9. Screen-by-screen parity walkthrough
+
+The app now mirrors every website route (see `docs/parity/ANDROID-PARITY-MATRIX.md`). Walk each
+screen on the device and record whether it renders, scrolls, and shows real or explicitly
+unavailable data.
+
+| Screen | Opens | Back returns one level | Data correct | Notes |
+| --- | --- | --- | --- | --- |
+| Dashboard | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Diagnostics hub | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Device identity | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Battery & health | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Storage | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Temperature | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Display (swatches) | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Touch canvas | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Performance benchmark | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Compatibility | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Network hub | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Cellular | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Wi-Fi | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Internet quality | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Indoor survey | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Troubleshoot | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Results / history | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Guides + search | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Guide detail | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Assistant | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Methodology | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Settings | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| Privacy & permissions | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+
+Also check on a tablet or landscape phone (≥600 dp): content should be capped at 720 dp and centred,
+bottom navigation should stay reachable.
+
+| Layout check | Expected | Observed |
+| --- | --- | --- |
+| Phone portrait | single column, 48 dp targets | NOT RUN |
+| Tablet / landscape | centred 720 dp column | NOT RUN |
+| Font scale 130% | no clipped labels | NOT RUN |
+| Dark system theme | app stays light-only | NOT RUN |
+
+## 10. Verdict rules
 
 The Android app may be called **device-validated** only when:
 
@@ -243,5 +285,6 @@ The Android app may be called **device-validated** only when:
 - [ ] 10 consecutive runs with no crash, no ANR, no overlapping run.
 - [ ] Battery delta recorded with screen-on duration; no services, no wakelocks.
 - [ ] A report round-trips through `/api/reports` with 200.
+- [ ] All 23 screens in section 9 open, render and navigate back correctly.
 
 Until then the status is **built and unit-verified, not device-validated**.
