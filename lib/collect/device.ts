@@ -1,5 +1,5 @@
 import type { ModuleResult, Reading } from "@/lib/types";
-import { makeResult, safe, unavailableReading } from "@/lib/collect/common";
+import { makeResult, safe } from "@/lib/collect/common";
 
 interface UADataValues {
   platform?: string;
@@ -299,6 +299,9 @@ export async function collectDevice(): Promise<ModuleResult> {
   if (!highEntropy.model && androidModel) {
     notes.push("The model name was parsed from the legacy user-agent string, which is being frozen by Chromium.");
   }
+  notes.push(
+    "This module describes what your device is, not how well it is working, so it is deliberately not scored.",
+  );
 
   const measuredCount = readings.filter((r) => r.evidence === "measured").length;
   const coverage = measuredCount / readings.length;
@@ -310,7 +313,10 @@ export async function collectDevice(): Promise<ModuleResult> {
 
   return makeResult("device", {
     status: hasCore ? "complete" : "partial",
-    score: hasCore ? Math.round(72 + coverage * 24) : null,
+    // Identity is not a condition. Scoring how many fields the browser happens
+    // to expose would produce a number that rises and falls for reasons that
+    // have nothing to do with the device's health, so this module is unscored.
+    score: null,
     coverage,
     readings,
     summary: `${browser} on ${os}${model ? ` · ${model}` : ""}, ${viewport} CSS px at ${dpr.toFixed(2)}× density.`,
@@ -330,5 +336,3 @@ export function browserFamily(): string {
   return "other";
 }
 
-export const DEVICE_UNSUPPORTED_READING = (label: string) =>
-  unavailableReading(label.toLowerCase(), label, "Web platform", "Not exposed to web pages.");

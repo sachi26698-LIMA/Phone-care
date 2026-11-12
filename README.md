@@ -98,14 +98,15 @@ environment variables; the assistant falls back to a deterministic local engine.
 
 Checked against a local production build (`next build` + `next start`) driven by headless Chromium:
 
-- full scan completes 7/9 modules (screen and touch are guided checks by design), health index
-  **83 / 100 "Good"** at 41% evidence in that run;
+- full scan completes 7/9 modules (screen and touch are guided checks by design); without battery
+  capacities or device storage totals the index is **88 / 100 "Provisional"** at 58% evidence — the
+  ring is labelled provisional because only 42% of the scoring model can be verified;
 - network module measured a real round-trip (9 ms, 1452.6 Mbps down, 154.3 Mbps up on loopback);
 - 8/8 screen confirmations and a 40/40-zone touch trace persist across reloads;
 - battery calibration yields an **estimated** 80% health from entered capacities;
 - JSON report export, 404 routes, print layout and reduced-motion mode all verified;
 - 320, 390, 820 and 1440 px with no horizontal overflow;
-- 113 text nodes measured against WCAG 2.2 contrast (0 failures on the light theme);
+- 111 text nodes measured against WCAG 2.2 contrast (0 failures on the light theme);
 - API caps enforced (5 MB upload → 413, download capped at 8 MB, assistant POST → 501 without a key).
 
 Phase 2 added a four-profile automation matrix:

@@ -106,8 +106,14 @@ async function measureUpload(
   const timer = setTimeout(() => controller.abort(), 30_000);
   try {
     const payload = new Uint8Array(bytes);
-    // Fill with pseudo-random data so compression cannot inflate the result.
-    for (let i = 0; i < bytes; i += 4096) payload[i] = (i / 4096) % 251;
+    // Every byte must be random: a sparsely filled buffer is ~99.98% zeros and a
+    // compressing proxy would shrink it, inflating the reported upload speed.
+    const block = 65_536;
+    const scratch = new Uint8Array(block);
+    for (let offset = 0; offset < bytes; offset += block) {
+      crypto.getRandomValues(scratch);
+      payload.set(offset + block <= bytes ? scratch : scratch.subarray(0, bytes - offset), offset);
+    }
     onProgress?.({ phase: "upload", progress: 15, message: "Uploading test payload" });
     const start = performance.now();
     const res = await fetch(`/api/network/upload?t=${Date.now()}`, {

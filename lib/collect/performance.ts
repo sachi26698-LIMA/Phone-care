@@ -122,6 +122,10 @@ export async function measureStorageSpeed(bytes = 1_000_000): Promise<StorageSpe
       readMbPerSec: bytes / 1_000_000 / (readMs / 1000),
       bytes,
     };
+  } catch {
+    // Private modes can expose IndexedDB yet refuse the write. That is a
+    // missing reading, not a failed module.
+    return null;
   } finally {
     db.close();
   }
@@ -242,11 +246,11 @@ export async function collectPerformance(): Promise<ModuleResult> {
     },
   );
 
-  const parts: Array<[number, number]> = [
-    [cScore, 0.5],
-    [fScore ?? 0, fpsUsable ? 0.35 : 0],
-    [sScore ?? 70, 0.15],
-  ];
+  // Only measured signals carry weight. Filling a missing storage sample with a
+  // neutral 70 would quietly pull every unmeasured device toward that number.
+  const parts: Array<[number, number]> = [[cScore, 0.5]];
+  if (fpsUsable && fScore != null) parts.push([fScore, 0.35]);
+  if (sScore != null) parts.push([sScore, 0.15]);
   const weightTotal = parts.reduce((sum, [, weight]) => sum + weight, 0);
   let score = Math.round(parts.reduce((sum, [value, weight]) => sum + value * weight, 0) / weightTotal);
   // Raw throughput can look impressive on a device with very few threads; cap

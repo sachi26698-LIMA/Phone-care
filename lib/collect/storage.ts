@@ -96,7 +96,7 @@ export async function collectStorage(profile: UserProfile): Promise<ModuleResult
     value: lb == null ? null : formatBytes(lb),
     evidence: lb == null ? "unavailable" : "measured",
     source: "localStorage",
-    detail: "Scan results and preferences are stored only on this device. Nothing is uploaded.",
+    detail: "Scan results and preferences are stored only on this device. Nothing you enter is sent anywhere.",
     status: "neutral",
   });
 
@@ -162,18 +162,25 @@ export async function collectStorage(profile: UserProfile): Promise<ModuleResult
 
   if (!totalGb) {
     notes.push(
-      "The Storage API measures this site's quota only. Enter your device totals to model actual disk pressure.",
+      "The Storage API measures this site's quota only. Enter your device totals to model actual disk pressure and get a score.",
     );
   }
 
   const measured = readings.filter((r) => r.evidence !== "unavailable").length;
   const coverage = measured / readings.length;
-  let score: number | null = null;
-  if (devicePressure) score = devicePressure === "good" ? 92 : devicePressure === "warn" ? 68 : 38;
-  else if (estimate?.quota) score = 78;
+  // A score needs device data. Knowing that the browser will let this origin
+  // store N bytes says nothing about how full the phone is, so a quota-only run
+  // stays unscored rather than reporting a fixed "78".
+  const score: number | null = devicePressure
+    ? devicePressure === "good"
+      ? 92
+      : devicePressure === "warn"
+        ? 68
+        : 38
+    : null;
 
   return makeResult("storage", {
-    status: devicePressure || estimate?.quota ? "complete" : "partial",
+    status: devicePressure ? "complete" : "partial",
     score,
     coverage,
     readings,

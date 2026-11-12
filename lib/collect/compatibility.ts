@@ -35,7 +35,7 @@ export function collectCompatibility(): ModuleResult {
       label: "Battery Status API",
       category: "Sensors",
       core: true,
-      supported: "getBattery" in nav,
+      supported: typeof nav.getBattery === "function",
       unlocks: "Live charge level and charging state",
     },
     {

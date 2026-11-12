@@ -194,7 +194,7 @@ export async function collectBattery(profile: UserProfile): Promise<ModuleResult
     key: "time-to-full",
     label: "Time to full",
     value: battery.charging ? (toFull ?? "Not reported") : "—",
-    evidence: toFull ? "measured" : battery.charging ? "unavailable" : "measured",
+    evidence: toFull ? "measured" : "unavailable",
     source: "Battery Status API",
     detail: toFull
       ? "Reported by the browser; phones frequently over-estimate this."
@@ -208,7 +208,7 @@ export async function collectBattery(profile: UserProfile): Promise<ModuleResult
     key: "time-to-empty",
     label: "Time remaining",
     value: !battery.charging ? (toEmpty ?? "Not reported") : "—",
-    evidence: toEmpty ? "measured" : !battery.charging ? "unavailable" : "measured",
+    evidence: toEmpty ? "measured" : "unavailable",
     source: "Battery Status API",
     status: "neutral",
   });

@@ -190,7 +190,7 @@ export function ResultsView() {
               />
               <p className="text-center text-[12px] leading-relaxed text-muted">
                 {health.provisional
-                  ? `Provisional: only ${health.scorableModules} scored module${health.scorableModules === 1 ? "" : "s"} and ${health.confidence}% evidence coverage. Run the full scan for a verdict.`
+                  ? `Provisional: ${health.scorableModules} scored module${health.scorableModules === 1 ? "" : "s"}, ${health.confidence}% evidence coverage and ${Math.round(health.scoredWeightShare * 100)}% of the weighted model. Add battery capacities and storage totals for a verdict.`
                   : band.note}
               </p>
               <div className="w-full border-t border-line-soft pt-3">

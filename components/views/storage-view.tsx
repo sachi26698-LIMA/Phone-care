@@ -173,12 +173,10 @@ export function StorageView() {
         </Card>
       </div>
 
+      {/* Origin usage and persistence already live in the footprint card above;
+          only the device figures (available once you enter totals) need a strip. */}
       {result?.readings.length ? (
-        <MetricStrip
-          readings={result.readings}
-          keys={["device-free", "device-used", "origin-usage", "persisted"]}
-          columns={4}
-        />
+        <MetricStrip readings={result.readings} keys={["device-free", "device-used"]} columns={2} />
       ) : null}
 
       <ModuleResultPanel moduleId="storage" title="Storage readings" />

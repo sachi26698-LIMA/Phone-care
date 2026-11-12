@@ -472,7 +472,7 @@ export function buildBriefing(ctx: AssistantContext): {
       body: "Run the full scan and PhoneCare will build a weighted picture of battery, storage, network, thermal and performance signals — with every reading labelled by how it was obtained.",
       bullets: [
         "Nine modules, about 30 seconds plus two guided checks.",
-        "No permissions, no account, no uploads.",
+        "No permissions, no account, no third-party uploads.",
         "Unavailable metrics are shown as unavailable, not guessed.",
       ],
       confidence: 0,

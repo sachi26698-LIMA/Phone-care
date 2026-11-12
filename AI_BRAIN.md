@@ -204,6 +204,7 @@ Semantic surfaces built on those brand colours:
 | `--color-muted` | `#5C5666` | Secondary text (≈6.6:1 on canvas) |
 | `--color-faint` | `#766F80` | Metadata (≈4.8:1 on white) |
 | `--color-accent` | `#6A5ACD` | Primary action / link (≈5.3:1 on white) |
+| `--color-accent-deep` | `#5646B0` | Hover/pressed state for primary purple |
 | `--color-warn` | `#A15A00` | Text-safe amber; `--color-amber` stays for fills |
 | `--color-good` | `#1E7A4C` | Measured/healthy status |
 | `--color-bad` | `#B3261E` | Action-needed status |
@@ -409,7 +410,7 @@ thermal frame-reading contradiction; changed "Calculating…"/"Sampling…" plac
 | Type safety | `tsc --noEmit` | ✅ 0 errors |
 | Production build | `next build` | ✅ 28 routes |
 | Full scan on light build | headless Chromium, production server | ✅ 7/9 auto modules; device 93, storage 78, compatibility 98, network 94, performance 74, thermal 68–88 (session variance), battery partial |
-| Contrast | scripted WCAG pass over 113 rendered text nodes on `/` | ✅ 0 failures (≥4.5:1 body, ≥3:1 large) |
+| Contrast | scripted WCAG pass over 111 rendered text nodes on `/` (count shifts with the readings rendered) | ✅ 0 failures (≥4.5:1 body, ≥3:1 large) |
 | Horizontal overflow | 320 / 390 / 820 / 1440 px | ✅ 0 px at every width |
 | Mobile drawer | open, focus, Escape, focus trap | ✅ dialog mounts on open, focuses close button, closes on Escape |
 | Bottom navigation | 5 routes at 390 px | ✅ active purple indicator, no overlap with content (pb-28) |
@@ -476,6 +477,29 @@ Feature-detected per session; every gap has a visible fallback rather than a fab
 | Abuse limits | Download cap 8 MB, upload cap 4 MB, assistant 12 req/min + body caps | Verified in earlier QA |
 | Data residency | Diagnostics live in `localStorage` only; no cookies, no third-party requests, no analytics | Network panel clean |
 | Dependencies | `npm audit --omit=dev` | 0 vulnerabilities |
+
+### 7.10 Pre-merge code review (2026-11-09)
+
+Full pass over all 89 files of PR #1. Issues found and fixed in the review commit:
+
+| Issue | Why it mattered | Fix |
+| --- | --- | --- |
+| Device identity was scored `72 + coverage×24` | The number rose and fell with how many UA fields the browser exposes, so "device 93/100" described the browser's chattyness, not the phone | Module is now unscored (`—`) and says so in its notes |
+| Storage was scored a fixed **78** when only the origin quota was readable | A constant dressed up as a health score; the quota says nothing about how full the disk is | Score only exists once the user enters device totals (pressure model); otherwise `partial` + `—` |
+| "Time to full / remaining" showed `—` labelled **Measured** | A dash was presented as a measurement | Not-applicable rows are `unavailable` |
+| Upload payload was ~99.98% zeros (`i += 4096`) while the comment claimed incompressibility | A compressing proxy would have inflated upload Mbps | Every byte filled via `crypto.getRandomValues` in 64 KB blocks |
+| Performance injected a neutral **70** for an unmeasured storage benchmark | Pulled every such device toward 70 without disclosure | Only measured signals carry weight, matching the network module |
+| IndexedDB write errors rejected the whole performance module | Private modes can expose IDB but refuse writes | Benchmark returns `null` (reading unavailable) instead |
+| BatteryManager listeners were never removed | Leak + state updates after unmount on a global object | Listeners removed in the effect cleanup |
+| `ScoreRing` built its gradient id from size+score | Two rings with the same score would collide in the DOM | `useId()` |
+| Compatibility used `"getBattery" in nav` | Contradicted `hasBatteryApi()`, which requires a callable function | Same `typeof === "function"` test |
+| Health index could read "Excellent" with under half the weighted model scored | The headline verdict rested on 4 of 9 modules | `provisional` now also requires ≥50% of the model weight to be scored |
+| Dead exports (`moduleIsStale`, `MODULE_ORDER`, `DEVICE_UNSUPPORTED_READING`), "no uploads" copy, redundant `isRunning` condition | Unnecessary code and two absolute privacy claims the speed test contradicted | Removed / reworded |
+| Storage page showed origin usage and persistence twice (footprint card + metric tiles + readings panel) | Redundant presentation of the same three numbers | Metric strip now carries only the device figures the user enters |
+
+Result after the fixes (headless Chromium, production build): 7/9 modules complete, **4 scored**, health
+index **88 Provisional** at 58% evidence and 42% of the weighted model, contrast 111/0, touch 40/40,
+overflow 0 at 320/390/820/1440, no console errors.
 
 ---
 
@@ -574,3 +598,7 @@ contrast and overflow verification. Remaining: real-device pass on Android/iOS a
 | 2026-11-09 | `hasBatteryApi()` requires a callable function | `"getBattery" in navigator` was true for browsers exposing the property as `undefined`, so the badge said Supported while the readings said unavailable |
 | 2026-11-09 | Modules labelled by dominant evidence, not "measured" count | A thermal score built from estimated signals displayed "0 measured"; the report now says "N estimated" |
 | 2026-11-09 | CSP added with `'unsafe-inline'` for scripts only | Next injects an inline bootstrap; a nonce pipeline needs middleware and is deferred. Everything else is `'self'` |
+| 2026-11-09 | Identity and browser capability are never scored as device health | A score must describe the device's condition. Availability of UA fields or APIs is information, not health |
+| 2026-11-09 | An index needs ≥50% of the model weight scored to be called a verdict | With battery (20%) and disk (14%) unknown, the weighted coverage is 42% — enough for a provisional reading, not a verdict |
+| 2026-11-09 | Upload payload is fully random | Test fidelity: a compressible body would overstate upload speed |
+| 2026-11-09 | No absolute "no uploads" claim | The speed test POSTs synthetic bytes to our own endpoint; copy now says no account and no third-party uploads |

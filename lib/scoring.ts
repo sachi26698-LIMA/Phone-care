@@ -1,5 +1,5 @@
 import { MODULES, MODULE_MAP } from "@/lib/modules";
-import type { DiagnosticsState, EvidenceLevel, ModuleId, ModuleResult } from "@/lib/types";
+import type { DiagnosticsState, EvidenceLevel, ModuleResult } from "@/lib/types";
 
 export interface HealthSummary {
   overall: number | null;
@@ -9,6 +9,8 @@ export interface HealthSummary {
   runModules: number;
   scorableModules: number;
   weightedCoverage: number;
+  /** Share of the scoring model's total weight that produced a score (0-1). */
+  scoredWeightShare: number;
   counts: { good: number; warn: number; bad: number };
   evidenceMix: Record<EvidenceLevel, number>;
   weakest: ModuleResult[];
@@ -57,10 +59,15 @@ export function summarizeHealth(state: DiagnosticsState): HealthSummary {
   const totalWeight = MODULES.reduce((sum, m) => sum + m.weight, 0);
 
   const confidence = Math.round((weightedCoverage / totalWeight) * 100);
+  const scoredWeightShare = totalWeight > 0 ? weightSum / totalWeight : 0;
 
   return {
     overall: weightSum > 0 ? Math.round(weightedScore / weightSum) : null,
-    provisional: confidence < 40 || scorableModules < 4,
+    // A verdict needs enough of the weighted model to be scored. Without battery
+    // health (20%) and disk data (14%) the index covers under half the weights,
+    // and calling that "excellent" would be an overclaim.
+    provisional: confidence < 40 || scorableModules < 4 || scoredWeightShare < 0.5,
+    scoredWeightShare,
     confidence,
     runModules,
     scorableModules,
@@ -71,10 +78,3 @@ export function summarizeHealth(state: DiagnosticsState): HealthSummary {
     strongest: sorted.slice(-3).reverse(),
   };
 }
-
-export function moduleIsStale(result: ModuleResult | undefined, maxAgeMs = 1000 * 60 * 60 * 24) {
-  if (!result?.completedAt) return true;
-  return Date.now() - result.completedAt > maxAgeMs;
-}
-
-export const MODULE_ORDER: ModuleId[] = MODULES.map((m) => m.id);

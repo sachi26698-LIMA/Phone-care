@@ -12,9 +12,9 @@ import type { ModuleMeta } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function ModuleCard({ meta }: { meta: ModuleMeta }) {
-  const { state, running, batch } = useDiagnostics();
+  const { state, running } = useDiagnostics();
   const result = state.modules[meta.id];
-  const isRunning = running === meta.id || (batch.active && running === meta.id);
+  const isRunning = running === meta.id;
   const score = result?.score ?? null;
   const ran = Boolean(result?.completedAt);
 

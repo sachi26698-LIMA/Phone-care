@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     siteName: "PhoneCare AI",
     title: "PhoneCare AI — Smartphone diagnostics, honestly labelled",
     description:
-      "Run nine diagnostic modules in your browser. No permissions, no uploads, and no invented readings.",
+      "Run nine diagnostic modules in your browser. No permissions, no account, no third-party uploads, and no invented readings.",
     url: siteUrl,
   },
   twitter: {

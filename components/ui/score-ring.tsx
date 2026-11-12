@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { cn, scoreBand } from "@/lib/utils";
 
 export function ScoreRing({
@@ -22,7 +23,9 @@ export function ScoreRing({
   const circumference = 2 * Math.PI * radius;
   const pct = score == null ? 0 : Math.max(0, Math.min(100, score));
   const offset = circumference - (pct / 100) * circumference;
-  const id = `ring-${size}-${Math.round(pct)}`;
+  // Two rings with the same score and size would otherwise share a DOM id.
+  const uid = useId();
+  const id = `ring-${uid.replace(/:/g, "")}`;
 
   return (
     <div

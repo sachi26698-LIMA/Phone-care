@@ -319,7 +319,7 @@ export function DashboardView() {
                 {health.runModules === 0
                   ? "The index only uses verified data. Run a scan to build your report."
                   : health.provisional
-                    ? `Provisional: ${health.confidence}% evidence coverage. Run the remaining modules before treating this as a verdict.`
+                    ? `Provisional: ${Math.round(health.scoredWeightShare * 100)}% of the weighted model is scored (${health.confidence}% evidence coverage). Run the remaining modules or add battery and storage figures for a verdict.`
                     : band.note}
               </p>
 

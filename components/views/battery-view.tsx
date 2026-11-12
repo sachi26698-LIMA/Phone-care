@@ -48,11 +48,13 @@ export function BatteryView() {
     setSupported(hasBatteryApi());
     if (!hasBatteryApi()) return;
     let interval: number | undefined;
+    const events = ["levelchange", "chargingchange", "chargingtimechange", "dischargingtimechange"];
+    let sync: (() => void) | null = null;
 
     void (async () => {
       const battery = await readBattery();
       if (!battery || !active) return;
-      const sync = () => {
+      sync = () => {
         setLive({
           level: battery.level,
           charging: battery.charging,
@@ -61,7 +63,6 @@ export function BatteryView() {
         });
       };
       sync();
-      const events = ["levelchange", "chargingchange", "chargingtimechange", "dischargingtimechange"];
       for (const event of events) battery.addEventListener?.(event, sync);
       batteryRef.current = battery;
 
@@ -76,6 +77,7 @@ export function BatteryView() {
     return () => {
       active = false;
       if (interval) window.clearInterval(interval);
+      if (sync) for (const event of events) batteryRef.current?.removeEventListener?.(event, sync);
       batteryRef.current = null;
     };
   }, []);
