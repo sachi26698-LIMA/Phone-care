@@ -52,6 +52,7 @@ class MainActivity : Activity(), Host {
     private lateinit var scroll: ScrollView
     private lateinit var content: LinearLayout
     private lateinit var navBar: LinearLayout
+    private lateinit var navItems: LinearLayout
     private var current: Screen = Screen.DASHBOARD
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -162,6 +163,15 @@ class MainActivity : Activity(), Host {
         }
         top.addView(backChip)
         top.addView(
+            Ui.text(this, "PC", Type.LABEL, Tokens.SURFACE, bold = true).apply {
+                background = Tokens.rounded(Tokens.VIOLET, Tokens.dpF(this@MainActivity, 8f))
+                gravity = Gravity.CENTER
+                width = Tokens.dp(this@MainActivity, 30)
+                height = Tokens.dp(this@MainActivity, 30)
+                contentDescription = "PhoneCare"
+            },
+        )
+        top.addView(
             Ui.text(this, "PhoneCare", Type.SECTION, Tokens.VIOLET, bold = true).apply {
                 setLetterSpacing(0.02f)
                 setPadding(Tokens.dp(this@MainActivity, Tokens.SPACE_S), 0, 0, 0)
@@ -198,8 +208,19 @@ class MainActivity : Activity(), Host {
                 Tokens.dp(this@MainActivity, Tokens.SPACE_S),
                 Tokens.dp(this@MainActivity, Tokens.SPACE_S),
             )
+            gravity = Gravity.CENTER_HORIZONTAL
             elevation = Tokens.dpF(this@MainActivity, 8f)
         }
+        // On a tablet the bar must stay as wide as the content column, not stretch edge to edge
+        // while the cards sit in a centred 720 dp strip.
+        navItems = Layout.row(this).apply {
+            val width = resources.displayMetrics.widthPixels
+            layoutParams = LinearLayout.LayoutParams(
+                minOf(width, Tokens.dp(this@MainActivity, 720)),
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+        }
+        bar.addView(navItems)
         Tab.entries.forEach { tab ->
             val item = Layout.column(this).apply {
                 gravity = Gravity.CENTER_HORIZONTAL
@@ -226,14 +247,14 @@ class MainActivity : Activity(), Host {
                     tag = "indicator"
                 },
             )
-            bar.addView(item)
+            navItems.addView(item)
         }
         return bar
     }
 
     private fun paintNav(selected: Tab?) {
-        for (index in 0 until navBar.childCount) {
-            val item = navBar.getChildAt(index) as LinearLayout
+        for (index in 0 until navItems.childCount) {
+            val item = navItems.getChildAt(index) as LinearLayout
             val tab = Tab.entries[index]
             val label = item.findViewWithTag<TextView>("label")
             val indicator = item.findViewWithTag<View>("indicator")

@@ -28,8 +28,8 @@ fun dashboardScreen(host: Host): View {
 
     return Pages.page(
         host,
-        "PhoneCare",
-        "The same diagnostics as the website, plus readings only a phone can take.",
+        "Check your real health.",
+        "The same nine modules as the website, plus modem, Wi-Fi and thermal readings only a phone can take.",
     ) {
         addView(
             Ui.card(context) {
