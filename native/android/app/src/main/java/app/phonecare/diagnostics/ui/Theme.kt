@@ -121,6 +121,18 @@ object Layout {
     fun weight(weight: Float): LinearLayout.LayoutParams =
         LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, weight)
 
+    /**
+     * A flexible gap in a row.
+     *
+     * Do not build this from a bare `View` with default or `wrap_content` layout params: under an
+     * AT_MOST measure spec `View.getDefaultSize` returns the whole available space, so the spacer
+     * silently grows to fill the parent. In the app bar that made one row 1144 px tall on a
+     * 720x1280 screen, pushed the title and status line to zero height, and squeezed the
+     * ScrollView to 0 — the whole UI looked blank. Zero on both axes, weight on the width.
+     */
+    fun flexSpacer(context: Context, weight: Float = 1f): View =
+        View(context).apply { layoutParams = LinearLayout.LayoutParams(0, 0, weight) }
+
     fun margins(
         context: Context,
         left: Int = 0,

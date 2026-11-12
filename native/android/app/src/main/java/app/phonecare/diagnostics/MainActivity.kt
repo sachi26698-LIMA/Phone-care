@@ -141,7 +141,7 @@ class MainActivity : Activity(), Host {
                 setLetterSpacing(0.02f)
             },
         )
-        top.addView(View(this).apply { layoutParams = Layout.weight(1f) })
+        top.addView(Layout.flexSpacer(this))
         top.addView(Ui.badge(this, "native", Ui.alpha(Tokens.VIOLET, 0.12f), Tokens.VIOLET))
         bar.addView(top)
 
