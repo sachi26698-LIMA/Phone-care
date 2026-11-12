@@ -18,9 +18,10 @@ following was nevertheless executed with tools obtained from npm/PyPI/GitHub:
 | Check | Tool | Result |
 | --- | --- | --- |
 | All 10 Kotlin files compile | `kotlinc 2.4.21` + `android-35/android.jar`, `-jvm-target 17` | **exit 0, 0 warnings, 47 classes** |
-| Engine behaviour | `verification/EngineChecks.kt` (desktop JVM) | **27 passed, 0 failed** |
-| Unit tests (desktop) | `SchemaInvariantTest` executed via a functional JUnit stub runner | **4 passed, 0 failed** |
-| Unit tests (Gradle) | `gradle testDebugUnitTest` on the CI runner | **success**, HTML report artifact uploaded |
+| Engine behaviour | `app/src/test/.../verification/EngineChecks.kt` (desktop JVM + Gradle test) | **27 passed, 0 failed** |
+| Unit tests (desktop) | schema tests executed via a functional JUnit stub runner | **4 passed, 0 failed** |
+| Engine checks | `verify-engine.sh` after refactor into the test source set | **27 passed, 0 failed** |
+| Unit tests (Gradle) | `gradle testDebugUnitTest` — now includes `EngineChecksTest` (27 checks) | **success** in CI, HTML report uploaded |
 | APK build | `gradle assembleDebug` on the CI runner | **success** — `app-debug.apk`, 935,496 B |
 | APK verification | `aapt2 dump badging`, `unzip -l`, `apksigner verify` on the runner | **success** — all assertions passed |
 | Manifest + resources + adaptive icon | `aapt2 2.20` compile + link | exit 0; badging confirms package, minSdk 26, targetSdk 35, permissions, launcher activity, icon |
@@ -70,6 +71,24 @@ floor; 20/200/400 unstable); score withheld when `scored=false`, > 80 when valid
 
 They will run for real as `gradle testDebugUnitTest` in CI; the local run used a functional
 stand-in for JUnit's `Assert` because `junit.jar` cannot be downloaded here.
+
+## 3b. Pre-device hardening (bug fixes found while auditing for this validation round)
+
+Auditing every metric against its API surfaced four real defects. All were fixed before device
+testing begins, because each would have produced either a crash or a mislabelled reading:
+
+| # | Defect | Consequence | Fix |
+| --- | --- | --- | --- |
+| 1 | `NetworkCapabilities.getSignalStrength()` was called without an API check | **crash on Android 8/9** (`NoSuchMethodError`), i.e. minSdk 26–28 | guarded by `SDK_INT >= Q`, with a documented fallback to `WifiInfo.getRssi()` |
+| 2 | Invalid platform RSSI suppressed a valid `WifiInfo` value | valid RSSI shown as `unavailable` | platform value used only when inside −120…0, otherwise legacy value, and the `source` string says which |
+| 3 | LTE timing advance was inside the API-30 band block | TA silently never read on Android 8–10 | moved out of the guard; still reported `unsupported` when the modem returns `UNAVAILABLE` |
+| 4 | A non-NR serving cell on API 29+ produced no 5G row at all | missing row looked like "5G absent" without explanation | now emits `nr.ss_rsrp` as `unsupported` with the NSA explanation |
+
+Also fixed while auditing: service state no longer requires location permission (only
+`READ_PHONE_STATE`), its unavailable row uses the same metric id (`net.in_service`) as the available
+one, `net.data_network_type` now emits a permission-denied row instead of nothing, `rsrpDbm` falls
+back to NR SS-RSRP when the serving cell is 5G, and overlapping measurement runs are refused with an
+explicit message (protects the repeated-test protocol).
 
 ## 4. CI build — executed successfully
 

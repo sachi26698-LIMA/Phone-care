@@ -1,3 +1,5 @@
+package app.phonecare.diagnostics.verification
+
 import app.phonecare.diagnostics.core.Availability
 import app.phonecare.diagnostics.core.Evidence
 import app.phonecare.diagnostics.core.MeasureUnit
@@ -12,7 +14,6 @@ import app.phonecare.diagnostics.optimization.tips
 import app.phonecare.diagnostics.quality.InternetQualityEngine
 import app.phonecare.diagnostics.survey.SurveySession
 import java.time.Instant
-import kotlin.system.exitProcess
 
 /**
  * Executable checks for the Android measurement engine.
@@ -24,12 +25,12 @@ import kotlin.system.exitProcess
  * Run with native/android/verify-engine.sh.
  */
 
-private var passed = 0
-private val failures = mutableListOf<String>()
+private val passed = java.util.concurrent.atomic.AtomicInteger(0)
+private val failures = java.util.Collections.synchronizedList(mutableListOf<String>())
 
 private fun check(name: String, condition: Boolean, detail: String = "") {
     if (condition) {
-        passed += 1
+        passed.incrementAndGet()
     } else {
         failures += "$name${if (detail.isNotEmpty()) " — $detail" else ""}"
     }
@@ -38,7 +39,15 @@ private fun check(name: String, condition: Boolean, detail: String = "") {
 private fun sample(index: Int, rtt: Double?) =
     InternetQualityEngine.ProbeSample(index, rtt, InternetQualityEngine.Failure.NONE, Instant.parse("2026-11-09T10:00:00Z"))
 
-fun main() {
+/**
+ * Runs every engine check and returns the failures (empty means all passed).
+ *
+ * This is called by `main` below for the standalone script and by
+ * `EngineChecksTest` so the same 27 checks also run under `gradle testDebugUnitTest`.
+ */
+fun runEngineChecks(verbose: Boolean = true): List<String> {
+    failures.clear()
+    passed.set(0)
     val at = Instant.parse("2026-11-09T10:00:00Z")
 
     // --- schema invariants -------------------------------------------------
@@ -164,9 +173,16 @@ fun main() {
     check("RSRP band very weak", SurveySession.classifyRsrp(-115.0) == "Very weak")
     check("RSSI band weak", SurveySession.classifyRssi(-78.0) == "Weak")
 
-    println("native engine checks: $passed passed, ${failures.size} failed")
-    if (failures.isNotEmpty()) {
+    if (verbose) {
+        println("native engine checks: ${passed.get()} passed, ${failures.size} failed")
         failures.forEach { println("  x $it") }
-        exitProcess(1)
+    }
+    return failures.toList()
+}
+
+fun main() {
+    val failures = runEngineChecks()
+    if (failures.isNotEmpty()) {
+        kotlin.system.exitProcess(1)
     }
 }

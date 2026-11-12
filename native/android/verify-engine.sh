@@ -41,10 +41,10 @@ echo "Compiling ${#SOURCES[@]} Kotlin files against $(basename "$(dirname "$ANDR
 "$KOTLINC" -classpath "$ANDROID_JAR" -jvm-target 17 -d "$OUT/classes" "${SOURCES[@]}"
 
 echo "Compiling verification harness…"
-"$KOTLINC" -classpath "$OUT/classes:$ANDROID_JAR" -jvm-target 17 -d "$OUT/verify" verification/EngineChecks.kt
+"$KOTLINC" -classpath "$OUT/classes:$ANDROID_JAR" -jvm-target 17 -d "$OUT/verify" app/src/test/java/app/phonecare/diagnostics/verification/EngineChecks.kt
 
 echo "Running engine checks…"
-java -cp "$OUT/verify:$OUT/classes:$KOTLIN_STDLIB:$ANDROID_JAR" EngineChecksKt
+java -cp "$OUT/verify:$OUT/classes:$KOTLIN_STDLIB:$ANDROID_JAR" app.phonecare.diagnostics.verification.EngineChecksKt
 
 echo
 echo "OK: all sources compile; engine checks passed."

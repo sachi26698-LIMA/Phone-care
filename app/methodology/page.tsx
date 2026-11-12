@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowUpRight, Lock, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Lock, ShieldCheck, Smartphone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EvidenceBadge } from "@/components/ui/evidence-badge";
@@ -218,6 +218,36 @@ export default function MethodologyPage() {
                   ASSISTANT_MODEL
                 </span>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div>
+                <CardTitle>Android app status</CardTitle>
+                <p className="mt-1 text-[11.5px] text-faint">Native readings are labelled separately</p>
+              </div>
+              <Smartphone className="size-4 text-muted" aria-hidden="true" />
+            </CardHeader>
+            <CardContent className="space-y-2.5 text-[12px] leading-relaxed text-muted">
+              <p>
+                <span className="font-medium text-fg">Built, not yet device-validated.</span> The
+                native Kotlin app compiles, passes its engine and unit checks in CI, and produces a
+                signed debug APK. No physical-phone run has been recorded yet, so nothing here claims
+                validated radio behaviour.
+              </p>
+              <p>
+                <span className="font-medium text-fg">Different source, different label.</span> This
+                website can only read what a browser exposes — throughput, latency, frame timing,
+                device hints. Cell signal, Wi-Fi RSSI and link speed exist only in the Android app,
+                where each value carries the telephony API that produced it.
+              </p>
+              <p>
+                <span className="font-medium text-fg">Same rules on both sides.</span> Both share one
+                schema, one evidence model and one set of guidance rules. A browser measurement is
+                never presented as a native one, and an unavailable value is shown as unavailable with
+                a reason.
+              </p>
             </CardContent>
           </Card>
 

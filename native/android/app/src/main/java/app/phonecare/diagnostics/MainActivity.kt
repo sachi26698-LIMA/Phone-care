@@ -72,6 +72,12 @@ class MainActivity : Activity() {
     private var survey: SurveySession.Survey = SurveySession.Survey(Instant.now(), emptyList())
     private val ratHistory = mutableListOf<String>()
 
+    /** Guards against overlapping measurements (double taps during device testing). */
+    @Volatile
+    private var runInProgress = false
+    private var activeMonitor: ConnectivityMonitor? = null
+    private var completedRuns = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         permissionManager = PermissionManager(this)
@@ -93,6 +99,9 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        // A measurement in flight must not leave a registered NetworkCallback behind.
+        activeMonitor?.stop()
+        activeMonitor = null
         worker.shutdownNow()
         super.onDestroy()
     }
@@ -334,32 +343,48 @@ class MainActivity : Activity() {
             setStatus("Enter an http(s) test server first.")
             return
         }
+        if (runInProgress) {
+            setStatus("A measurement is already running. Wait for it to finish — overlapping runs would mix samples.")
+            return
+        }
+        runInProgress = true
         val gateway = wifi?.gateway
         setStatus("Running the quality test…")
         qualityOutput.text = "Measuring latency, throughput and stability. Keep the screen on."
         worker.execute {
             val monitor = ConnectivityMonitor(applicationContext)
+            activeMonitor = monitor
             monitor.start()
-            val result = runCatching {
-                InternetQualityEngine(baseUrl).run({ message ->
-                    runOnUiThread { qualityOutput.text = message }
-                }, gatewayHost = gateway)
-            }
-            val events = monitor.stop()
-            runOnUiThread {
-                result.onSuccess { value ->
-                    quality = value
-                    connectivity = events
-                    renderQuality()
-                    renderGuidance()
-                    setStatus(
-                        if (value.scored) "Quality test complete."
-                        else "Test complete, but no score was published: ${value.validityReasons.joinToString("; ")}",
-                    )
-                }.onFailure { error ->
-                    qualityOutput.text = "The test failed: ${error.javaClass.simpleName}."
-                    setStatus("The quality test did not complete.")
+            try {
+                val result = runCatching {
+                    InternetQualityEngine(baseUrl).run({ message ->
+                        runOnUiThread { qualityOutput.text = message }
+                    }, gatewayHost = gateway)
                 }
+                val events = monitor.stop()
+                activeMonitor = null
+                runOnUiThread {
+                    result.onSuccess { value ->
+                        quality = value
+                        connectivity = events
+                        completedRuns += 1
+                        renderQuality()
+                        renderGuidance()
+                        setStatus(
+                            if (value.scored) {
+                                "Run #$completedRuns complete."
+                            } else {
+                                "Run #$completedRuns finished, but no score was published: " +
+                                    value.validityReasons.joinToString("; ")
+                            },
+                        )
+                    }.onFailure { error ->
+                        qualityOutput.text = "The test failed: ${error.javaClass.simpleName}."
+                        setStatus("The quality test did not complete.")
+                    }
+                }
+            } finally {
+                runOnUiThread { runInProgress = false }
             }
         }
     }
@@ -466,11 +491,17 @@ class MainActivity : Activity() {
             setStatus("Enter an http(s) test server first.")
             return
         }
+        if (runInProgress) {
+            setStatus("A measurement is already running. Wait for it to finish before measuring a room.")
+            return
+        }
+        runInProgress = true
         setStatus("Measuring the room…")
         worker.execute {
             val result = runCatching { InternetQualityEngine(baseUrl).run() }
             val sample = result.getOrNull()
             runOnUiThread {
+                runInProgress = false
                 if (sample == null) {
                     setStatus("The room measurement failed.")
                 } else {

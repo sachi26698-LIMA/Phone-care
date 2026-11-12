@@ -878,3 +878,50 @@ tests), so a drift in one platform shows up as a failing test rather than a sile
 
 Browser readings and native readings are never merged: `/network` labels each capability with its
 source, and Android measurements carry `evidence` + `source` describing the telephony API used.
+
+---
+
+## 15. Device-validation readiness (no device results yet)
+
+The APK exists; **no phone has run it**. This round prepared the validation instead of pretending to
+perform it.
+
+### 15.1 Artifacts produced
+
+| File | Purpose |
+| --- | --- |
+| `docs/testing/DEVICE-VALIDATION-REPORT.md` | Fill-in report: metadata, 13 cellular metrics with their APIs and sanity bounds, Wi-Fi table, permission matrix, 4G/5G transition log, indoor/outdoor survey, 10-run stability table, battery/wakelock checks, report interoperability, verdict rules. Every cell starts as `NOT RUN` |
+| `docs/native/METRIC-EVIDENCE-MATRIX.md` | Authoritative mapping metric → API → minSdk → evidence/availability semantics, dual-SIM limits, and the list of data the app will never read |
+| `docs/native/DEVICE-TEST-CHECKLIST.md` | Protocol, extended with battery/foreground-service steps and stricter exit criteria |
+
+### 15.2 Defects found by auditing metrics against their APIs
+
+| # | Defect | Would have caused |
+| --- | --- | --- |
+| 1 | `NetworkCapabilities.getSignalStrength()` called unguarded | crash on Android 8/9 (minSdk 26) |
+| 2 | invalid platform RSSI suppressed valid `WifiInfo.getRssi()` | false "RSSI unavailable" |
+| 3 | timing advance nested inside the API-30 band block | TA never read on Android 8–10 |
+| 4 | non-NR cell on API 29+ emitted no 5G row | "no 5G" without explanation |
+| 5 | service state required location unnecessarily | false permission-denied |
+| 6 | unavailable service state used a different metric id | split metric in reports |
+| 7 | missing phone-state emitted no network-type row | silent gap |
+| 8 | `rsrpDbm` ignored NR cells | guidance saw no signal on 5G-only cells |
+| 9 | overlapping runs allowed | mixed samples during repeated testing |
+
+All nine are fixed; the sources still compile with zero warnings.
+
+### 15.3 Tests now run in CI
+
+`EngineChecks.kt` moved into the unit-test source set (`app/src/test/java/.../verification/`), so
+`gradle testDebugUnitTest` executes **4 schema tests + 27 engine checks** instead of just four.
+`verify-engine.sh` runs the same 27 checks on a desktop JVM without Gradle.
+
+### 15.4 What is still unproven
+
+- Any radio value on any device.
+- 4G↔5G transition behaviour, dual-SIM slot attribution, indoor/outdoor deltas.
+- Battery consumption and wakeup behaviour under a 10-run session.
+- Report round-trip from the app to `/api/reports` with a device-generated payload.
+
+Until `docs/testing/DEVICE-VALIDATION-REPORT.md` contains observed values, the Android app is
+**built and unit-verified, not device-validated** — and it must not be called production-ready.
