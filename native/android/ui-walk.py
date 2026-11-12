@@ -456,6 +456,13 @@ def main() -> int:
         xml = dump()
         texts = [t for t, *_ in nodes(xml)]
         typed = any("wifi" in t.lower() for t in texts)
+        if typed and not any("wi-fi" in t.lower() for t in texts):
+            w_px, h_px = screen_size()
+            adb("shell", "input", "swipe", str(w_px // 2), str(int(h_px * 0.45)),
+                str(w_px // 2), str(int(h_px * 0.20)), "250")
+            time.sleep(1.0)
+            xml = dump()
+            texts = [t for t, *_ in nodes(xml)]
         results = [t for t in texts if "wi-fi" in t.lower()]
         empty = [t for t in texts if "no match" in t.lower()]
         ok = typed and results

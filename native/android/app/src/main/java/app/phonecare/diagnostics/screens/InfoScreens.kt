@@ -95,8 +95,20 @@ fun guidesScreen(host: Host): View {
     val context = host.context
     val listHolder = Layout.column(context)
     val search = Pages.input(context, "Search guides, symptoms or categories")
+    // With the keyboard open a 640 dp phone leaves about 380 px of page. The heading and subtitle
+    // are worth showing until the reader starts typing, and are exactly what pushes the first
+    // matching guide out of sight once they do.
+    val hero = Layout.column(context).apply {
+        addView(Ui.display(context, "Guides"))
+        addView(
+            Ui.body(context, "The same eight guides as the website, generated from one source.").apply {
+                setPadding(0, Tokens.dp(context, 2), 0, Tokens.dp(context, Tokens.SPACE_M))
+            },
+        )
+    }
 
     fun render(query: String) {
+        hero.visibility = if (query.isBlank()) View.VISIBLE else View.GONE
         listHolder.removeAllViews()
         val results = Guides.search(query)
         if (results.isEmpty()) {
@@ -140,7 +152,14 @@ fun guidesScreen(host: Host): View {
         override fun afterTextChanged(s: Editable?) = render(s?.toString().orEmpty())
     })
 
-    return Pages.page(host, "Guides", "The same eight guides as the website, generated from one source.") {
+    return Layout.column(context).apply {
+        setPadding(
+            Tokens.dp(context, Tokens.SPACE_L),
+            Tokens.dp(context, Tokens.SPACE_S),
+            Tokens.dp(context, Tokens.SPACE_L),
+            Tokens.dp(context, Tokens.SPACE_XL),
+        )
+        addView(hero)
         addView(search)
         addView(listHolder)
         render("")
