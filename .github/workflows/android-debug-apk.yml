@@ -222,36 +222,54 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls -l /dev/kvm || true
 
+      - name: Confirm KVM is usable
+        run: |
+          if [ ! -e /dev/kvm ]; then
+            echo "::error title=KVM::/dev/kvm is missing on this runner; an x86_64 emulator cannot boot"
+            exit 1
+          fi
+          ls -l /dev/kvm
+
       - name: Provision the emulator
+        timeout-minutes: 25
         run: |
           set -x
           mkdir -p docs/testing/evidence/emulator
           LOG=docs/testing/evidence/emulator/walk.log
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
           {
             echo "== provisioning $(date -u +%FT%TZ)"
-            echo "SDK=${ANDROID_HOME}"
-            export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
-            yes | sdkmanager --licenses > /dev/null 2>&1 || true
-            sdkmanager --install "platform-tools" "emulator" "system-images;android-34;google_apis;x86_64" 2>&1 | tail -5
-            echo no | avdmanager create avd -n walk -k "system-images;android-34;google_apis;x86_64" -d pixel_5 --force
-            adb start-server 2>&1 | tail -2
+            echo "SDK=$ANDROID_HOME"
+            adb version
+            yes | timeout 300 sdkmanager --licenses > /dev/null 2>&1 || true
+            timeout 900 sdkmanager --install "platform-tools" "emulator" \
+              "system-images;android-34;google_apis;x86_64" 2>&1 | tail -4
+            echo no | timeout 120 avdmanager create avd -n walk \
+              -k "system-images;android-34;google_apis;x86_64" -d pixel_5 --force
+            adb start-server
             nohup "$ANDROID_HOME/emulator/emulator" -avd walk -no-window -no-audio -no-boot-anim \
               -no-snapshot -gpu swiftshader_indirect -no-metrics -camera-back none -camera-front none \
               > /tmp/emulator.log 2>&1 &
             echo "emulator pid $!"
-            adb wait-for-device
+            for i in $(seq 1 60); do
+              adb devices | grep -q "emulator.*device" && break
+              sleep 5
+            done
+            echo "devices after ~$((i*5))s:"; adb devices
+            booted=0
             for i in $(seq 1 120); do
-              booted=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
-              [ "$booted" = "1" ] && break
+              [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ] && { booted=1; break; }
               sleep 5
             done
             echo "boot_completed=$booted after ~$((i*5))s"
-            adb devices
             adb shell wm dismiss-keyguard || true
+            echo "== emulator log tail"; tail -30 /tmp/emulator.log
           } 2>&1 | tee "$LOG"
-          adb devices | grep -q "emulator.*device" || { echo "::error::no emulator device"; tail -40 /tmp/emulator.log; exit 1; }
+          adb devices | grep -q "emulator.*device" || { echo "::error::no emulator device attached"; exit 1; }
+          grep -q "boot_completed=1" "$LOG" || { echo "::error::emulator never finished booting"; exit 1; }
 
       - name: Walk the app on the emulator
+        timeout-minutes: 30
         run: |
           set -x
           export PATH="$ANDROID_HOME/platform-tools:$PATH"
