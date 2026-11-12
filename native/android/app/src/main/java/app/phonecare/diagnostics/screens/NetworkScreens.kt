@@ -30,7 +30,9 @@ fun cellularScreen(host: Host): View {
                 ),
             )
             addView(
-                Ui.primaryButton(context, "Grant access") { host.requestCellularPermissions() },
+                // One primary action per screen: asking for access is a prerequisite, reading is
+                // the thing the user came to do.
+                Ui.secondaryButton(context, "Grant access") { host.requestCellularPermissions() },
             )
         }
         addView(

@@ -61,11 +61,16 @@ def record(status: str, name: str, detail: str = "") -> None:
     print(line, flush=True)
     if status == "fail":
         print(f"::error title=UI walk::{name} — {detail}", flush=True)
+        try:
+            EVIDENCE.mkdir(parents=True, exist_ok=True)
+            (EVIDENCE / f"fail-{slug(name)}.xml").write_text(LAST_XML or "(empty dump)")
+        except Exception:  # noqa: BLE001 - evidence must never mask the failure
+            pass
 
 
 def dump() -> str:
     """Return the current accessibility XML, retrying while the UI settles."""
-    for _ in range(6):
+    for _ in range(8):
         adb("shell", "uiautomator", "dump", "/sdcard/ui.xml", timeout=60)
         rc, xml = adb("shell", "cat", "/sdcard/ui.xml", timeout=60)
         if rc == 0 and xml.lstrip().startswith("<"):
@@ -363,6 +368,44 @@ def main() -> int:
             returned = wait_for_header(hub_title, 12)
             record("pass" if returned else "fail", f"{row} back returns to {hub_title}",
                    "" if returned else "hub title missing after back")
+
+    # --- permission flow and a real cellular read ------------------------------------
+    tap("Network", bottom_most=True)
+    wait_for_header("Network", 12)
+    if tap("Cellular diagnostics", scroll=5, above_nav=True):
+        wait_for_header("Cellular", 12)
+        if find("Grant access", above_nav=True) and tap("Grant access", above_nav=True):
+            time.sleep(2.5)
+            dialog = [t for t, *_ in nodes(dump()) if re.search(r"while using the app|\ballow\b|don.t allow", t, re.I)]
+            if dialog:
+                record("pass", "Permission request shows the system prompt", dialog[0][:70])
+                shot("25-permission-dialog")
+                spot = find("While using the app") or find("Allow")
+                if spot:
+                    adb("shell", "input", "tap", str(spot[0]), str(spot[1]))
+                    record("pass", "Permission granted from the prompt", "tapped the system dialog")
+                    time.sleep(2.5)
+            else:
+                record("fail", "Permission request shows the system prompt", "no prompt after Grant access")
+        else:
+            record("soft", "Permission request shows the system prompt", "permissions already held")
+
+        if tap("Read cellular now", above_nav=True):
+            time.sleep(7.0)
+            xml = dump()
+            texts = [t for t, *_ in nodes(xml)]
+            numbers = [t for t in texts if re.search(r"-?\d+(\.\d+)?\s*dBm|dB|RSRP|SINR", t, re.I)]
+            reason = [t for t in texts if re.search(r"not available|unavailable|requires", t, re.I)]
+            ok = bool(numbers) or bool(reason)
+            record("pass" if ok else "fail", "Cellular read returns values or a stated reason",
+                   (numbers + reason)[0][:80] if ok else "neither a measurement nor an explanation appeared")
+            shot("26-cellular-read")
+        else:
+            record("fail", "Read cellular now button present", "button not found on the Cellular screen")
+        back()
+        wait_for_header("Network", 10)
+    else:
+        record("fail", "Cellular diagnostics opens for the permission test", "row not reachable")
 
     # --- guide detail ----------------------------------------------------------------
     tap("More", bottom_most=True)
