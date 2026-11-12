@@ -454,11 +454,16 @@ def main() -> int:
         adb("shell", "input", "text", "wifi")
         time.sleep(1.8)
         xml = dump()
-        typed = any("wifi" in t.lower() for t, *_ in nodes(xml))
-        results = [t for t, *_ in nodes(xml) if "wi-fi" in t.lower()]
-        record("pass" if typed and results else "fail", "Guide search filters results",
-               f"field accepted 'wifi', Wi-Fi guide still listed: {results[0][:40]!r}" if typed and results
-               else f"field text present={typed}, matching guide present={bool(results)}")
+        texts = [t for t, *_ in nodes(xml)]
+        typed = any("wifi" in t.lower() for t in texts)
+        results = [t for t in texts if "wi-fi" in t.lower()]
+        empty = [t for t in texts if "no match" in t.lower()]
+        ok = typed and results
+        record("pass" if ok else "fail", "Guide search filters results",
+               f"field accepted 'wifi'; Wi-Fi guide listed: {results[0][:40]!r}" if ok
+               else f"field={typed} no-match-shown={bool(empty)} visible={texts[:8]}")
+        if not ok:
+            print("::notice title=guide-search::" + " | ".join(t[:30] for t in texts[:14])[:350], flush=True)
         shot("23-guides-search")
         for _ in range(4):
             adb("shell", "input", "keyevent", "KEYCODE_DEL")
