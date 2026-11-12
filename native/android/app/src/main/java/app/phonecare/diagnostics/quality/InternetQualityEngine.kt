@@ -1,10 +1,10 @@
 package app.phonecare.diagnostics.quality
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.net.HttpURLConnection
 import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.net.URL
 import java.time.Instant
 import kotlin.math.abs
@@ -42,7 +42,20 @@ class InternetQualityEngine(private val baseUrl: String) {
 
     data class Transfer(val direction: String, val bytes: Long, val ms: Long, val mbps: Double)
 
-    data class Stability(val roundMedians: List<Double>, val cvPct: Double?, val label: String)
+    data class Stability(
+        val roundMedians: List<Double>,
+        val cvPct: Double?,
+        /** Absolute spread between round medians; a high CV on a tiny spread is not instability. */
+        val rangeMs: Double?,
+        val label: String,
+    )
+
+    /**
+     * Unprivileged gateway check. A failed connect does NOT prove the gateway is
+     * down: routers may refuse TCP on all of these ports while forwarding traffic
+     * perfectly. That caveat travels with the value.
+     */
+    data class GatewayProbe(val host: String, val port: Int, val reachable: Boolean, val connectMs: Long?, val note: String)
 
     data class Result(
         val startedAt: Instant,
@@ -55,6 +68,7 @@ class InternetQualityEngine(private val baseUrl: String) {
         val download: Transfer?,
         val upload: Transfer?,
         val dnsMs: Double?,
+        val gateway: GatewayProbe?,
         val validityReasons: List<String>,
         val scores: Map<String, Double?>,
         val limitations: List<String>,
@@ -62,12 +76,13 @@ class InternetQualityEngine(private val baseUrl: String) {
         val scored: Boolean get() = validityReasons.isEmpty()
     }
 
-    suspend fun run(onProgress: (String) -> Unit = {}): Result = withContext(Dispatchers.IO) {
+    fun run(onProgress: (String) -> Unit = {}, gatewayHost: String? = null): Result {
         val startedAt = Instant.now()
         val startedNanos = System.nanoTime()
         onProgress("Resolving the test host")
 
         val dnsMs = measureDns()
+        val gateway = gatewayHost?.takeIf { it.isNotBlank() }?.let { probeGateway(it) }
 
         onProgress("Running probe round 1")
         val first = probeSeries(8, onProgress)
@@ -81,7 +96,7 @@ class InternetQualityEngine(private val baseUrl: String) {
 
         val allSamples = first + second + third
         val latency = summarise(allSamples)
-        val stability = stability(listOf(median(first.mapNotNull { it.rttMs }), median(second.mapNotNull { it.rttMs }), median(third.mapNotNull { it.rttMs })))
+        val stabilityResult = stability(listOf(median(first.mapNotNull { it.rttMs }), median(second.mapNotNull { it.rttMs }), median(third.mapNotNull { it.rttMs })))
 
         val reasons = buildList {
             if (latency.attempted < 3) add("fewer than three probes attempted")
@@ -91,7 +106,7 @@ class InternetQualityEngine(private val baseUrl: String) {
             if (download == null && upload == null) add("no throughput transfer completed")
         }
 
-        val scores = score(latency, download?.mbps, upload?.mbps, stability.cvPct, reasons.isEmpty())
+        val scores = score(latency, download?.mbps, upload?.mbps, stabilityResult.cvPct, stabilityResult.rangeMs, reasons.isEmpty())
         val limitations = buildList {
             add("Throughput is measured against the configured test server, so its distance is part of the result.")
             add("Probe failures are HTTP-level failures, not packet loss; Android apps cannot read packet loss without root or a VPN service.")
@@ -99,17 +114,18 @@ class InternetQualityEngine(private val baseUrl: String) {
             if (reasons.isNotEmpty()) add("No score published: ${reasons.joinToString("; ")}.")
         }
 
-        Result(
+        return Result(
             startedAt = startedAt,
             finishedAt = Instant.now(),
             durationMs = (System.nanoTime() - startedNanos) / 1_000_000,
             server = baseUrl.takeIf { it.isNotBlank() },
             samples = allSamples,
             latency = latency,
-            stability = stability,
+            stability = stabilityResult,
             download = download,
             upload = upload,
             dnsMs = dnsMs,
+            gateway = gateway,
             validityReasons = reasons,
             scores = scores,
             limitations = limitations,
@@ -123,6 +139,36 @@ class InternetQualityEngine(private val baseUrl: String) {
             InetAddress.getAllByName(host)
             (System.nanoTime() - start) / 1_000_000.0
         }.getOrNull()
+    }
+
+    private fun probeGateway(host: String): GatewayProbe {
+        // Port 53 first: most home routers run a DNS forwarder. Then 80/443 for a web UI.
+        for (port in intArrayOf(53, 80, 443)) {
+            val start = System.nanoTime()
+            val reachable = runCatching {
+                Socket().use { socket ->
+                    socket.connect(InetSocketAddress(host, port), 500)
+                }
+                true
+            }.getOrElse { false }
+            val ms = (System.nanoTime() - start) / 1_000_000
+            if (reachable) {
+                return GatewayProbe(
+                    host = host,
+                    port = port,
+                    reachable = true,
+                    connectMs = ms,
+                    note = "TCP connect to the gateway succeeded on port $port. This tests one service, not the gateway's health.",
+                )
+            }
+        }
+        return GatewayProbe(
+            host = host,
+            port = 0,
+            reachable = false,
+            connectMs = null,
+            note = "No TCP service answered on the gateway's ports 53, 80 or 443. Routers often refuse these while forwarding traffic normally, so this does not prove the gateway is down.",
+        )
     }
 
     private fun probeSeries(count: Int, onProgress: (String) -> Unit): List<ProbeSample> {
@@ -253,16 +299,18 @@ class InternetQualityEngine(private val baseUrl: String) {
 
         fun stability(roundMedians: List<Double?>): Stability {
             val values = roundMedians.filterNotNull()
-            if (values.size < 2) return Stability(values, null, "unknown")
+            if (values.size < 2) return Stability(values, null, null, "unknown")
             val mean = values.average()
             val cv = if (mean <= 0) null else sqrt(values.sumOf { (it - mean) * (it - mean) } / (values.size - 1)) / mean * 100
+            val range = (values.maxOrNull() ?: 0.0) - (values.minOrNull() ?: 0.0)
+            // Same absolute floor as the web engine: ≤20 ms of drift is not something a user feels.
             val label = when {
                 cv == null -> "unknown"
-                cv <= 10 -> "stable"
+                cv <= 10 || range <= 20 -> "stable"
                 cv <= 25 -> "variable"
                 else -> "unstable"
             }
-            return Stability(values, cv, label)
+            return Stability(values, cv, range, label)
         }
 
         fun score(
@@ -270,12 +318,14 @@ class InternetQualityEngine(private val baseUrl: String) {
             downloadMbps: Double?,
             uploadMbps: Double?,
             stabilityCv: Double?,
+            stabilityRangeMs: Double?,
             scored: Boolean,
         ): Map<String, Double?> {
             val download = downloadMbps?.let { if (it >= 50) 95.0 else if (it >= 20) 85.0 else if (it >= 8) 70.0 else if (it >= 2) 55.0 else 35.0 }
             val upload = uploadMbps?.let { if (it >= 20) 92.0 else if (it >= 8) 80.0 else if (it >= 3) 66.0 else if (it >= 1) 52.0 else 38.0 }
             val latencyScore = latency.medianMs?.let { if (it <= 40) 94.0 else if (it <= 80) 84.0 else if (it <= 150) 70.0 else if (it <= 300) 52.0 else 34.0 }
-            val stabilityScore = stabilityCv?.let { if (it <= 10) 92.0 else if (it <= 25) 74.0 else if (it <= 50) 52.0 else 30.0 }
+            val effectiveCv = stabilityCv?.let { if (stabilityRangeMs != null && stabilityRangeMs <= 20) minOf(it, 10.0) else it }
+            val stabilityScore = effectiveCv?.let { if (it <= 10) 92.0 else if (it <= 25) 74.0 else if (it <= 50) 52.0 else 30.0 }
 
             val parts = listOf(download to 0.45, upload to 0.25, latencyScore to 0.2, stabilityScore to 0.1)
                 .filter { it.first != null }

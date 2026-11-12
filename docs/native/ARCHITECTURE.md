@@ -109,17 +109,24 @@ user pasting JSON) to prove interop, and for future sync. Responses:
 
 ```
 native/android/app/src/main/java/app/phonecare/diagnostics/
-├─ MainActivity.kt                 // Compose shell, permission prompts, run button
+├─ MainActivity.kt                 // framework Views (no Compose/AndroidX), sections, report share
 ├─ core/DiagnosticSchema.kt        // Kotlin mirrors of the schema types
 ├─ core/Evidence.kt                // EvidenceLevel / Availability / Measurement
-├─ permissions/PermissionManager.kt // rationale, request, denied/permanently-denied
-├─ cellular/CellularCollector.kt   // TelephonyManager → measurements
+├─ permissions/PermissionManager.kt // rationale, request, denied/permanently-denied, settings intents
+├─ cellular/CellularCollector.kt   // TelephonyManager → measurements (+ rat, rsrpDbm)
 ├─ cellular/SimInfoProvider.kt     // dual-SIM metadata
-├─ wifi/WifiCollector.kt           // ConnectivityManager/NetworkCallback → measurements
-├─ quality/InternetQualityEngine.kt// latency/jitter/TTFB/DNS/throughput
-├─ survey/SurveySession.kt         // rooms, repeatable samples, heatmap data
-└─ report/ReportExporter.kt        // JSON export matching the shared schema
+├─ wifi/WifiCollector.kt           // ConnectivityManager/LinkProperties → RSSI, band, gateway, DNS
+├─ quality/InternetQualityEngine.kt// latency/jitter/DNS/throughput/gateway probe, synchronous
+├─ net/ConnectivityMonitor.kt      // NetworkCallback transitions during a run
+├─ optimization/Tips.kt            // deterministic guidance rules + explicit "what we cannot do"
+├─ survey/SurveySession.kt         // rooms, repeatable samples, median/confidence
+└─ report/ReportExporter.kt        // JSON via ACTION_SEND text/plain (no FileProvider)
 ```
+
+The app deliberately has **zero third-party dependencies**: no Compose, no AndroidX, no
+coroutines. Network work runs on a single-thread `ExecutorService`, results are handed to the UI
+thread with `runOnUiThread`. This is what makes it possible to compile the whole engine on a desktop
+JVM against `android.jar` and to ship a small APK from a bare SDK.
 
 Every collector returns `List<Measurement>`; nothing throws when a field is missing — it returns an
 `Availability` instead. That is the same rule the web engine uses.
@@ -140,7 +147,7 @@ Every collector returns `List<Measurement>`; nothing throws when a field is miss
 | --- | --- | --- |
 | 1 | Research + architecture (this folder) | ✅ docs |
 | 2 | Network diagnostics specification | ✅ `NETWORK-SPEC.md` |
-| 3 | Native Android prototype | ✅ source written, **not compiled** |
+| 3 | Native Android prototype | ✅ compiles against `android.jar`; engine checks 27/27; **APK not built** |
 | 4 | Real-device measurements | ⛔ requires hardware — instructions in `docs/DEVICE_TESTING.md` |
 | 5 | Indoor survey | ✅ web lab implemented; native session code written |
 | 6 | AI troubleshooting engine | ✅ rule-based triage + before/after (web), spec for native |

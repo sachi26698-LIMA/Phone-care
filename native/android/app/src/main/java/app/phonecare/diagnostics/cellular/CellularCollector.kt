@@ -16,12 +16,11 @@ import android.telephony.CellSignalStrengthWcdma
 import android.telephony.ServiceState
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
-import androidx.core.content.ContextCompat
 import app.phonecare.diagnostics.core.Availability
 import app.phonecare.diagnostics.core.Evidence
 import app.phonecare.diagnostics.core.Measurement
 import app.phonecare.diagnostics.core.SimInfo
-import app.phonecare.diagnostics.core.Unit
+import app.phonecare.diagnostics.core.MeasureUnit
 import app.phonecare.diagnostics.core.Uncertainty
 import java.time.Instant
 
@@ -39,6 +38,10 @@ class CellularCollector(private val context: Context) {
         val measurements: List<Measurement>,
         val sims: List<SimInfo>,
         val carrier: String?,
+        /** Human-readable radio access technology from the OS, e.g. "LTE" or "NR". */
+        val rat: String?,
+        /** Serving-cell RSRP when the modem exposed one; null is not zero. */
+        val rsrpDbm: Double?,
         val notes: List<String>,
     )
 
@@ -46,7 +49,7 @@ class CellularCollector(private val context: Context) {
         context.getSystemService(TelephonyManager::class.java)
 
     private fun granted(permission: String): Boolean =
-        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+        context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
 
     fun collect(): Snapshot {
         val at = Instant.now()
@@ -58,13 +61,20 @@ class CellularCollector(private val context: Context) {
             measurements += Measurement.unavailable(
                 id = "lte.rsrp",
                 label = "LTE RSRP",
-                unit = Unit.DBM,
+                unit = MeasureUnit.DBM,
                 source = "TelephonyManager",
                 availability = Availability.UNSUPPORTED,
                 at = at,
                 notes = listOf("This device has no telephony radio."),
             )
-            return Snapshot(measurements, emptyList(), null, listOf("No telephony radio on this device."))
+            return Snapshot(
+                measurements = measurements,
+                sims = emptyList(),
+                carrier = null,
+                rat = null,
+                rsrpDbm = null,
+                notes = listOf("No telephony radio on this device."),
+            )
         }
 
         val hasLocation = granted(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -78,16 +88,17 @@ class CellularCollector(private val context: Context) {
 
         // --- Service state -----------------------------------------------
         if (hasPhoneState && hasLocation) {
-            runCatching { manager.serviceState }.onSuccess { state ->
+            val state = runCatching { manager.serviceState }.getOrNull()
+            if (state != null) {
                 measurements += serviceStateMeasurement(state, at)
-            }.onFailure {
-                notes += "Service state was refused by the platform: ${it.javaClass.simpleName}."
+            } else {
+                notes += "The platform returned no service state."
             }
         } else {
             measurements += Measurement.unavailable(
                 id = "net.service_state",
                 label = "Service state",
-                unit = Unit.COUNT,
+                unit = MeasureUnit.COUNT,
                 source = "TelephonyManager.getServiceState",
                 availability = if (hasPhoneState) Availability.PERMISSION_DENIED else Availability.PERMISSION_DENIED,
                 at = at,
@@ -102,7 +113,7 @@ class CellularCollector(private val context: Context) {
                 id = "net.data_network_type",
                 label = "Data network type",
                 value = networkType.toDouble(),
-                unit = Unit.COUNT,
+                unit = MeasureUnit.COUNT,
                 evidence = Evidence.MEASURED,
                 source = "TelephonyManager.getDataNetworkType()",
                 availability = Availability.AVAILABLE,
@@ -123,7 +134,7 @@ class CellularCollector(private val context: Context) {
             measurements += Measurement.unavailable(
                 id = "lte.rsrp",
                 label = "LTE RSRP",
-                unit = Unit.DBM,
+                unit = MeasureUnit.DBM,
                 source = "TelephonyManager.getAllCellInfo",
                 availability = Availability.PERMISSION_DENIED,
                 at = at,
@@ -133,7 +144,7 @@ class CellularCollector(private val context: Context) {
             measurements += Measurement.unavailable(
                 id = "lte.rsrp",
                 label = "LTE RSRP",
-                unit = Unit.DBM,
+                unit = MeasureUnit.DBM,
                 source = "TelephonyManager.getAllCellInfo",
                 availability = Availability.TRANSIENT,
                 at = at,
@@ -145,7 +156,7 @@ class CellularCollector(private val context: Context) {
                 measurements += Measurement.unavailable(
                     id = "lte.rsrp",
                     label = "LTE RSRP",
-                    unit = Unit.DBM,
+                    unit = MeasureUnit.DBM,
                     source = "TelephonyManager.getAllCellInfo",
                     availability = Availability.TRANSIENT,
                     at = at,
@@ -159,7 +170,15 @@ class CellularCollector(private val context: Context) {
         }
 
         notes += "Radio values are reported by the modem, are quantised (often 1 dB steps) and may be stale because Android throttles cell queries."
-        return Snapshot(measurements, sims, carrierName(manager, hasPhoneState, sims), notes)
+        val rsrp = measurements.firstOrNull { it.id == "lte.rsrp" }?.value
+        return Snapshot(
+            measurements = measurements,
+            sims = sims,
+            carrier = carrierName(manager, hasPhoneState, sims),
+            rat = networkType?.let { ratName(it) },
+            rsrpDbm = rsrp,
+            notes = notes,
+        )
     }
 
     private fun signalMeasurements(cell: CellInfo, at: Instant): List<Measurement> = when (cell) {
@@ -178,15 +197,14 @@ class CellularCollector(private val context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             result += dbm("lte.rssi", "LTE RSSI", strength.rssi, at, "CellSignalStrengthLte.getRssi() (API 29+)")
         }
-        val identity = cell.cellIdentity
-        if (identity is CellIdentityLte) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        val identity: CellIdentityLte = cell.cellIdentity
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 identity.bands.firstOrNull()?.let { band ->
                     result += Measurement(
                         id = "lte.band",
                         label = "LTE band",
                         value = band.toDouble(),
-                        unit = Unit.COUNT,
+                        unit = MeasureUnit.COUNT,
                         evidence = Evidence.MEASURED,
                         source = "CellIdentityLte.getBands()",
                         availability = Availability.AVAILABLE,
@@ -195,20 +213,23 @@ class CellularCollector(private val context: Context) {
                     )
                 }
             }
-            val timingAdvance = identity.timingAdvance
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && timingAdvance != CellInfo.UNAVAILABLE) {
+            // Timing advance lives on CellSignalStrengthLte (public since API 17), not the identity.
+            val timingAdvance = strength.timingAdvance
+            if (timingAdvance != CellInfo.UNAVAILABLE) {
                 result += Measurement(
                     id = "lte.timing_advance",
                     label = "LTE timing advance",
                     value = timingAdvance.toDouble(),
-                    unit = Unit.COUNT,
+                    unit = MeasureUnit.COUNT,
                     evidence = Evidence.MEASURED,
-                    source = "CellIdentityLte.getTimingAdvance()",
+                    source = "CellSignalStrengthLte.getTimingAdvance()",
                     availability = Availability.AVAILABLE,
                     timestamp = at,
-                    notes = listOf("Lower values generally mean the phone is closer to the tower."),
+                    notes = listOf(
+                        "Lower values generally mean the phone is closer to the tower.",
+                        "Many OEM modems return UNAVAILABLE here; that is reported as null, not as zero.",
+                    ),
                 )
-            }
         }
         return result
     }
@@ -234,7 +255,7 @@ class CellularCollector(private val context: Context) {
                 Measurement.unavailable(
                     id = "nr.ss_rsrp",
                     label = "5G NR SS-RSRP",
-                    unit = Unit.DBM,
+                    unit = MeasureUnit.DBM,
                     source = "CellSignalStrengthNr",
                     availability = Availability.UNSUPPORTED,
                     at = at,
@@ -254,7 +275,7 @@ class CellularCollector(private val context: Context) {
                     id = "nr.pci",
                     label = "5G NR physical cell id",
                     value = it.pci.toDouble(),
-                    unit = Unit.COUNT,
+                    unit = MeasureUnit.COUNT,
                     evidence = Evidence.MEASURED,
                     source = "CellIdentityNr.getPci()",
                     availability = Availability.AVAILABLE,
@@ -268,14 +289,14 @@ class CellularCollector(private val context: Context) {
         when {
             raw == CellInfo.UNAVAILABLE || raw > 0 ->
                 Measurement.unavailable(
-                    id, label, Unit.DBM, source, Availability.TRANSIENT, at,
+                    id, label, MeasureUnit.DBM, source, Availability.TRANSIENT, at,
                     notes = listOf("The modem returned UNAVAILABLE for this value."),
                 )
             else -> Measurement(
                 id = id,
                 label = label,
                 value = raw.toDouble(),
-                unit = Unit.DBM,
+                unit = MeasureUnit.DBM,
                 evidence = Evidence.MEASURED,
                 source = source,
                 availability = Availability.AVAILABLE,
@@ -289,14 +310,14 @@ class CellularCollector(private val context: Context) {
         when {
             raw == CellInfo.UNAVAILABLE ->
                 Measurement.unavailable(
-                    id, label, Unit.DB, source, Availability.TRANSIENT, at,
+                    id, label, MeasureUnit.DB, source, Availability.TRANSIENT, at,
                     notes = listOf("The modem returned UNAVAILABLE for this value."),
                 )
             else -> Measurement(
                 id = id,
                 label = label,
                 value = raw.toDouble(),
-                unit = Unit.DB,
+                unit = MeasureUnit.DB,
                 evidence = Evidence.MEASURED,
                 source = source,
                 availability = Availability.AVAILABLE,
@@ -312,7 +333,7 @@ class CellularCollector(private val context: Context) {
             id = "net.in_service",
             label = "In service",
             value = if (inService) 1.0 else 0.0,
-            unit = Unit.COUNT,
+            unit = MeasureUnit.COUNT,
             evidence = Evidence.MEASURED,
             source = "TelephonyManager.getServiceState()",
             availability = Availability.AVAILABLE,

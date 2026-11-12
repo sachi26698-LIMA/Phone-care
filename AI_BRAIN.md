@@ -717,7 +717,7 @@ which also avoids Android 15's time limit on `dataSync` foreground services.
 
 ### 12.8 Limitations that remain
 
-1. **Native code is uncompiled and untested** — no JDK, Gradle or Android SDK in this environment.
+1. **Native code compiles and its engine logic is verified, but no APK exists** — the environment has no Android SDK/Gradle, Google Maven is unreachable, and no desktop `d8`/`apksigner` is obtainable offline (see §13).
 2. Same-origin throughput includes the distance to this deployment; not comparable to ISP figures.
 3. Browser probe failures are HTTP-level; packet loss is not measurable without native privileges.
 4. Wi-Fi RSSI is driver-quantised; channel width and neighbour occupancy are not available without scanning.
@@ -735,7 +735,10 @@ which also avoids Android 15's time limit on `dataSync` foreground services.
 | `POST /api/reports` with a valid Android report | 200, normalized echo |
 | `POST /api/reports` with fabricated value (`null` + `measured`) | 422 with JSON-pointer path |
 | Oversized body | 413 cap enforced at 4 MB |
-| Android build | **not run** — no SDK in this environment |
+| Android Kotlin compile | ✅ 10 files, `android.jar` API 35, exit 0, 0 warnings (47 classes) |
+| Android engine checks | ✅ 27 passed, 0 failed |
+| aapt2 resource link | ✅ manifest + resources → 2.1 KB APK shell |
+| Android APK (`assembleDebug`) | **not run** — no SDK/Gradle/d8/apksigner here |
 | Real-device measurement | **not run** — requires hardware |
 
 ### 12.10 Phase status
@@ -744,10 +747,94 @@ which also avoids Android 15's time limit on `dataSync` foreground services.
 | --- | --- |
 | 1 research + architecture | ✅ `docs/native/` |
 | 2 diagnostics specification | ✅ `docs/native/NETWORK-SPEC.md` |
-| 3 native prototype | ⚠️ source written, **not compiled** |
+| 3 native prototype | ✅ compiles + 27 engine checks; ⚠️ APK not built |
 | 4 real device measurements | ⛔ blocked: needs hardware |
 | 5 indoor mapping | ✅ web survey implemented; native session code written |
 | 6 AI troubleshooting | ✅ deterministic triage + comparison |
 | 7 website integration | ✅ shared schema, validator, endpoint, labs linked |
 | 8 security/performance | ⚠️ web verified; native blocked |
 | 9 release readiness | ⛔ cannot be claimed without Phase 4 |
+
+---
+
+## 13. Phase 4 — native Android execution record
+
+### 13.1 Toolchain actually used
+
+| Component | Source | Notes |
+| --- | --- | --- |
+| Kotlin compiler 2.4.21 | npm `kotlin-compiler@2.4.21` | full `kotlinc`, not a runner |
+| JRE 25.0.2 | PyPI `jdk4py` | runtime only — no `javac`, `jarsigner` |
+| `android.jar` API 35 | GitHub `Sable/android-platforms` tarball (codeload) | 27,092,450 bytes |
+| `aapt2` 2.20 | npm `aaptjs3` (bundled Linux binary) | compile + link work; `dump badging` confirms package/SDK/permissions/icon |
+| `d8` | npm `d8-termux` | **unusable** — it is a Dalvik `classes.dex` container, not a JVM jar |
+
+Network reachability from this sandbox: `dl.google.com` → `000`, `repo.maven.apache.org` → `000`,
+`services.gradle.org` → `000`. That is why no SDK, AGP, Compose or Gradle distribution can be
+obtained here.
+
+### 13.2 Code changes made to reach a compiling, dependency-free app
+
+1. `enum class Unit` shadowed `kotlin.Unit` and broke every `() -> Unit` lambda → renamed
+   `MeasureUnit` throughout (schema, collectors, UI, checks).
+2. Removed `kotlinx.coroutines`: `InternetQualityEngine.run` is now synchronous; the Activity owns a
+   single-thread `ExecutorService`.
+3. Removed `androidx.core` (`ContextCompat`/`ActivityCompat`) → `Activity.checkSelfPermission`,
+   `requestPermissions`.
+4. Removed `FileProvider` and `res/xml`: report sharing is `ACTION_SEND` `text/plain` with the JSON
+   in `EXTRA_TEXT`, so no storage permission and no file surface.
+5. Replaced the Compose UI with a framework `ScrollView`/`LinearLayout` UI. This removed the last
+   AndroidX dependency, which is what made a full desktop compile possible. It also means the app
+   builds with nothing but the SDK.
+6. `CellIdentityLte.timingAdvance` does not exist; the accessor is on
+   `CellSignalStrengthLte.getTimingAdvance()`, frequently `UNAVAILABLE` — reported as null.
+7. Added `net/ConnectivityMonitor` (transition counts during a run), `optimization/Tips` (12 rule
+   ids, always ending with the `limits` boundary), gateway/DNS capture in `WifiCollector`, `rat` +
+   `rsrpDbm` in `CellularCollector`, and a TCP gateway probe in the quality engine.
+8. Stability now distinguishes CV noise from real drift: `rangeMs <= 20` counts as stable even when
+   CV is high, because sub-20 ms spread is measurement noise, not a bad link.
+
+### 13.3 Evidence
+
+```
+$ KOTLINC=… ANDROID_JAR=…/android-35/android.jar ./verify-engine.sh
+Compiling 10 Kotlin files against android-35…
+Compiling verification harness…
+Running engine checks…
+native engine checks: 27 passed, 0 failed
+OK: all sources compile; engine checks passed.
+```
+
+```
+$ aapt2 compile --dir app/src/main/res -o res.zip          # exit 0
+$ aapt2 link -o base-unsigned.apk -I android.jar --manifest AndroidManifest.xml \
+    -R res.zip --auto-add-overlay --min-sdk-version 26 --target-sdk-version 35   # exit 0
+base-unsigned.apk: AndroidManifest.xml (3408 B), resources.arsc (740 B)
+```
+
+Manifest needed an explicit `package=` attribute because `aapt2` link is run outside AGP (AGP
+injects the namespace). This is compatible with AGP 8 and harmless.
+
+### 13.4 Exact APK blocker
+
+| Needed | Why it is missing |
+| --- | --- |
+| `d8` (dexer) | Android build-tools only; Google Maven/SDK unreachable; npm's `d8` package is an Android-format dex container |
+| `apksigner` / `zipalign` | same |
+| Gradle 8.9 + AGP 8.7.3 | `services.gradle.org` and Google Maven unreachable |
+| Device/emulator | none in the sandbox |
+
+Consequence: the app can be compiled and reasoned about, but **no installable artifact can be
+produced here**, and none was fabricated. `build-local.sh` reproduces the full build on a machine
+with JDK 17 + Android SDK, printing the APK path, size and SHA-256.
+
+### 13.5 Next roadmap
+
+1. Build + install with `native/android/build-local.sh` on a machine with the SDK.
+2. Execute `docs/native/DEVICE-TEST-CHECKLIST.md`: emulator smoke round, then cellular, Wi-Fi,
+   permission matrix, transitions, indoor/outdoor, report interop.
+3. Launcher icon (adaptive vector) and label are in place; only then consider a release keystore.
+4. Feed real device reports back through `POST /api/reports` and compare against the web engines —
+   differences between modem-reported and browser-measured values must stay visible, not averaged.
+5. Optional hardening: instrumented tests (`androidTest`) for the permission matrix; `d8 --release`
+   shrinking once a real build exists.

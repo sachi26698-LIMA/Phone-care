@@ -96,16 +96,14 @@ class ReportExporter(private val context: Context) {
     }
 
     fun shareIntent(report: DiagnosticReport): Intent {
-        val file = write(report)
-        val uri = androidx.core.content.FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file,
-        )
+        // Shared as text, not a file URI: a FileProvider needs a manifest entry and
+        // grants broad read access to a cache directory. A report is small JSON, so
+        // the text share keeps the surface minimal and works with any mail/chat app.
+        val json = build(report).toString(2)
         return Intent(Intent.ACTION_SEND).apply {
-            type = "application/json"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "PhoneCare diagnostic report")
+            putExtra(Intent.EXTRA_TEXT, json)
         }
     }
 

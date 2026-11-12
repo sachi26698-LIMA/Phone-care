@@ -7,8 +7,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 
 /**
  * Per-feature permission handling.
@@ -27,7 +25,7 @@ class PermissionManager(private val activity: Activity) {
     private val prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     fun state(permission: String): State {
-        val granted = ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED
+        val granted = activity.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
         if (granted) return State.GRANTED
 
         val askedBefore = prefs.getBoolean(key(permission), false)
@@ -35,7 +33,7 @@ class PermissionManager(private val activity: Activity) {
 
         // After a first denial Android returns false for shouldShowRequestPermissionRationale
         // only when the user selected "don't ask again" (or policy blocked it).
-        val canAskAgain = ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
+        val canAskAgain = activity.shouldShowRequestPermissionRationale(permission)
         return if (canAskAgain) State.DENIED else State.PERMANENTLY_DENIED
     }
 
@@ -54,7 +52,7 @@ class PermissionManager(private val activity: Activity) {
 
     fun request(permission: String, requestCode: Int) {
         markRequested(permission)
-        ActivityCompat.requestPermissions(activity, arrayOf(permission), requestCode)
+        activity.requestPermissions(arrayOf(permission), requestCode)
     }
 
     fun openAppSettings() {

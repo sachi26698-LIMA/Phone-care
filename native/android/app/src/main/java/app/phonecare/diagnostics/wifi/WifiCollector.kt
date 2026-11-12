@@ -9,11 +9,10 @@ import android.net.NetworkCapabilities
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
-import androidx.core.content.ContextCompat
 import app.phonecare.diagnostics.core.Availability
 import app.phonecare.diagnostics.core.Evidence
 import app.phonecare.diagnostics.core.Measurement
-import app.phonecare.diagnostics.core.Unit
+import app.phonecare.diagnostics.core.MeasureUnit
 import app.phonecare.diagnostics.core.Uncertainty
 import java.time.Instant
 
@@ -32,6 +31,9 @@ class WifiCollector(private val context: Context) {
         val ssid: String?,
         val band: String?,
         val measurements: List<Measurement>,
+        /** Default-route gateway as reported by the OS; null when the link has no IPv4/V6 route. */
+        val gateway: String?,
+        val dnsServers: List<String>,
         val notes: List<String>,
     )
 
@@ -42,7 +44,15 @@ class WifiCollector(private val context: Context) {
 
         val connectivity = context.getSystemService(ConnectivityManager::class.java)
         if (connectivity == null) {
-            return Snapshot(false, null, null, emptyList(), listOf("ConnectivityManager is unavailable on this device."))
+            return Snapshot(
+                connected = false,
+                ssid = null,
+                band = null,
+                measurements = emptyList(),
+                gateway = null,
+                dnsServers = emptyList(),
+                notes = listOf("ConnectivityManager is unavailable on this device."),
+            )
         }
 
         val network = connectivity.activeNetwork
@@ -62,7 +72,7 @@ class WifiCollector(private val context: Context) {
                 id = "net.internet_capability",
                 label = "Internet capability",
                 value = if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) 1.0 else 0.0,
-                unit = Unit.COUNT,
+                unit = MeasureUnit.COUNT,
                 evidence = Evidence.MEASURED,
                 source = "NetworkCapabilities.NET_CAPABILITY_INTERNET",
                 availability = Availability.AVAILABLE,
@@ -73,7 +83,7 @@ class WifiCollector(private val context: Context) {
                 id = "net.internet_validated",
                 label = "Internet validated",
                 value = if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) 1.0 else 0.0,
-                unit = Unit.COUNT,
+                unit = MeasureUnit.COUNT,
                 evidence = Evidence.MEASURED,
                 source = "NetworkCapabilities.NET_CAPABILITY_VALIDATED",
                 availability = Availability.AVAILABLE,
@@ -84,9 +94,23 @@ class WifiCollector(private val context: Context) {
             )
         }
 
+        val gatewayAddress = linkProperties?.routes
+            ?.firstOrNull { it.isDefaultRoute }
+            ?.gateway
+            ?.hostAddress
+        val resolvers = linkProperties?.dnsServers?.mapNotNull { it.hostAddress } ?: emptyList()
+
         if (transport != "wifi") {
             notes += "The active network is $transport; Wi-Fi link metrics are not applicable right now."
-            return Snapshot(false, null, null, measurements, notes)
+            return Snapshot(
+                connected = false,
+                ssid = null,
+                band = null,
+                measurements = measurements,
+                gateway = gatewayAddress,
+                dnsServers = resolvers,
+                notes = notes,
+            )
         }
 
         val wifiInfo = readWifiInfo(connectivity, capabilities)
@@ -94,13 +118,21 @@ class WifiCollector(private val context: Context) {
             measurements += Measurement.unavailable(
                 id = "wifi.rssi",
                 label = "Wi-Fi RSSI",
-                unit = Unit.DBM,
+                unit = MeasureUnit.DBM,
                 source = "NetworkCapabilities.getTransportInfo",
                 availability = Availability.TRANSIENT,
                 at = at,
                 notes = listOf("The platform did not expose a WifiInfo for the active network."),
             )
-            return Snapshot(true, null, null, measurements, notes)
+            return Snapshot(
+                connected = true,
+                ssid = null,
+                band = null,
+                measurements = measurements,
+                gateway = gatewayAddress,
+                dnsServers = resolvers,
+                notes = notes,
+            )
         }
 
         // --- RSSI --------------------------------------------------------
@@ -113,7 +145,7 @@ class WifiCollector(private val context: Context) {
                 id = "wifi.rssi",
                 label = "Wi-Fi RSSI",
                 value = rssi.toDouble(),
-                unit = Unit.DBM,
+                unit = MeasureUnit.DBM,
                 evidence = Evidence.MEASURED,
                 source = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     "NetworkCapabilities.getSignalStrength()"
@@ -130,7 +162,7 @@ class WifiCollector(private val context: Context) {
             measurements += Measurement.unavailable(
                 id = "wifi.rssi",
                 label = "Wi-Fi RSSI",
-                unit = Unit.DBM,
+                unit = MeasureUnit.DBM,
                 source = "NetworkCapabilities.getSignalStrength()",
                 availability = Availability.TRANSIENT,
                 at = at,
@@ -146,7 +178,7 @@ class WifiCollector(private val context: Context) {
                 id = "wifi.frequency",
                 label = "Wi-Fi frequency",
                 value = frequency.toDouble(),
-                unit = Unit.MHZ,
+                unit = MeasureUnit.MHZ,
                 evidence = Evidence.MEASURED,
                 source = "WifiInfo.getFrequency()",
                 availability = Availability.AVAILABLE,
@@ -162,7 +194,7 @@ class WifiCollector(private val context: Context) {
                 id = "wifi.link_speed",
                 label = "Wi-Fi link speed",
                 value = linkSpeed.toDouble(),
-                unit = Unit.MBPS,
+                unit = MeasureUnit.MBPS,
                 evidence = Evidence.MEASURED,
                 source = "WifiInfo.getLinkSpeed()",
                 availability = Availability.AVAILABLE,
@@ -184,7 +216,15 @@ class WifiCollector(private val context: Context) {
         }
 
         notes += "Wi-Fi transmit power and channel width are controlled by the access point and are not readable from an app."
-        return Snapshot(true, ssid, bandFor(wifiInfo.frequency), measurements, notes)
+        return Snapshot(
+            connected = true,
+            ssid = ssid,
+            band = bandFor(wifiInfo.frequency),
+            measurements = measurements,
+            gateway = gatewayAddress,
+            dnsServers = resolvers,
+            notes = notes,
+        )
     }
 
     private fun readWifiInfo(
@@ -200,7 +240,7 @@ class WifiCollector(private val context: Context) {
     }
 
     private fun readSsid(info: WifiInfo): String? {
-        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+        val granted = context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
         if (!granted) return null
         val ssid = info.ssid ?: return null

@@ -12,3 +12,10 @@ next-env.d.ts
 
 # local test build output
 .contract-build
+
+# Android / Gradle
+local.properties
+.gradle
+.idea
+*.keystore
+*.jks

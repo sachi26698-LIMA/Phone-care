@@ -25,7 +25,7 @@ enum class Availability(val json: String) {
     TRANSIENT("transient"),
 }
 
-enum class Unit(val json: String) {
+enum class MeasureUnit(val json: String) {
     DBM("dBm"),
     DB("dB"),
     MS("ms"),
@@ -52,7 +52,7 @@ data class Measurement(
     val id: String,
     val label: String,
     val value: Double?,
-    val unit: Unit,
+    val unit: MeasureUnit,
     val evidence: Evidence,
     val source: String,
     val availability: Availability,
@@ -89,7 +89,7 @@ data class Measurement(
         fun unavailable(
             id: String,
             label: String,
-            unit: Unit,
+            unit: MeasureUnit,
             source: String,
             availability: Availability,
             at: Instant,

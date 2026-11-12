@@ -93,7 +93,8 @@ environment variables; the assistant falls back to a deterministic local engine.
   `survey.ts`, `triage.ts`, `compare.ts`, `report.ts`, `schema.ts`, `capabilities.ts`.
 - `shared/diagnostics.schema.json` — the contract shared with the Android app.
 - `native/android/` — separate Kotlin app (radio, Wi-Fi, dual-SIM, survey, report export).
-  **Source only: it has not been compiled or device-tested in this environment.**
+  **Compiles against `android.jar` API 35 and passes 27 engine checks; the APK has not been built**
+  (no Android SDK/`d8`/`apksigner` in this environment — see `native/android/README.md` §1).
 - `docs/native/` — research record, architecture and the network measurement specification.
 - `app/network/*` and `components/network/*` — the network lab UI.
 - `app/guides`, `app/methodology` — statically rendered content with sources.
@@ -160,9 +161,13 @@ Phase 3 added the network lab and the shared report contract:
   `null` + `measured` pair with a JSON-pointer error (422); bodies over 4 MB get 413;
 - `tsc --noEmit` clean; production build serves 28 routes and 6 API routes.
 
-The native Android app is **not compiled**: this environment has no JDK, Gradle or Android SDK.
-Radio, Wi-Fi and dual-SIM readings are therefore untested on hardware, and the Phase 4 device table
-is still empty. See `native/android/README.md`.
+The native Android app **compiles** (all 10 Kotlin files against `android.jar` API 35, zero
+warnings) and its engine logic passes 27/27 desktop checks; its manifest and resources also link
+with `aapt2`. It is **not built into an APK** here: this environment has no Android SDK, Gradle,
+`d8` or `apksigner`, and Google Maven is unreachable. Radio, Wi-Fi and dual-SIM readings are
+therefore untested on hardware, and the Phase 4 device table is still empty. Run
+`native/android/build-local.sh` on a machine with JDK 17 + Android SDK and follow
+`docs/native/DEVICE-TEST-CHECKLIST.md`.
 
 Physical iOS/Android/Firefox runs are still pending — see
 [`docs/DEVICE_TESTING.md`](./docs/DEVICE_TESTING.md). Numbers vary by machine and load. Full
@@ -171,5 +176,5 @@ method, caveats and the one known transport artifact are in [`AI_BRAIN.md` §7](
 ## Status
 
 Production build verified locally; live Vercel deployment has **not** been performed.
-Network lab verified in the browser build; native Android app written but not compiled or
-device-tested (`native/android/README.md`).
+Network lab verified in the browser build; native Android engine compiles and is unit-verified,
+but no APK exists yet and nothing has run on a physical phone (`native/android/README.md`).

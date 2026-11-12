@@ -9,13 +9,21 @@ rooms. Nothing in this document is evidence yet; it is the protocol that produce
 
 | Prerequisite | Status |
 | --- | --- |
-| Android app compiles (`./gradlew assembleDebug`) | ⛔ no JDK/SDK in the build environment |
+| Kotlin sources compile against `android-35/android.jar` | ✅ `verify-engine.sh` (10 files, 0 warnings) |
+| Engine logic verified | ✅ 27/27 desktop checks |
+| Resources + manifest link (aapt2) | ✅ base APK shell produced |
+| `./gradlew assembleDebug` | ⛔ no JDK/SDK/Gradle here, and Google Maven is unreachable |
 | App installs on a physical device | ⛔ |
 | Test server reachable from the phone (same deployment, HTTPS) | ✅ endpoints exist |
 | Report JSON accepted by `POST /api/reports` | ✅ verified with a synthetic report |
 | Rooms and router location chosen | ⬜ user decision |
 
 Until all rows are ✅ or ⬜, Phase 4 cannot produce evidence and must not be reported as done.
+
+> **Current blocker.** Everything up to `classes.dex` has been exercised except dexing and
+> signing: there is no desktop `d8`, `apksigner` or `zipalign` obtainable in this environment.
+> Run `native/android/build-local.sh` on a machine with JDK 17 + Android SDK, then work through
+> `docs/native/DEVICE-TEST-CHECKLIST.md`.
 
 ## 2. Devices and settings to record
 
