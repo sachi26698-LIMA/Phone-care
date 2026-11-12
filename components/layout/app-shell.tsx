@@ -11,6 +11,7 @@ import {
   ScanLine,
   ShieldCheck,
   Smartphone,
+  Wifi,
   Sparkles,
   X,
   type LucideIcon,
@@ -28,6 +29,7 @@ const ICONS: Record<string, LucideIcon> = {
   sparkles: Sparkles,
   book: BookOpen,
   shield: ShieldCheck,
+  wifi: Wifi,
 };
 
 function isActive(pathname: string, href: string) {

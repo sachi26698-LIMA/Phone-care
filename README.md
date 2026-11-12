@@ -23,6 +23,21 @@ results without inventing data.
 | Compatibility | 37-point feature matrix for this browser | Hardware capability behind the browser |
 | Performance | Frame cadence, compute index, browser storage speed | CPU usage %, GPU load, thermal state |
 
+### Network lab (Phase 3)
+
+Four additional pages under `/network` go beyond the single network module:
+
+| Page | What it does |
+| --- | --- |
+| `/network` | Capability matrix: what the browser, Android and iOS can honestly read |
+| `/network/quality` | 18 probes in three rounds, 3 MB download, 2 MB random upload, DNS + TTFB; median/min/jitter/failure rate with uncertainty; score withheld when jitter > 150 ms or failures > 5 % |
+| `/network/survey` | Room-by-room survey (manual names, no location), minimum three samples per room, weak-spot ranking and optional user-entered dBm |
+| `/network/troubleshoot` | Rule-based cause classification (Wi-Fi coverage, cellular coverage, congestion, DNS, instability) plus a noise-aware before/after comparison |
+
+Reports follow the shared contract `shared/diagnostics.schema.json` and can be validated at
+`POST /api/reports` (4 MB cap, no storage). Radio rows are present in web reports and are null with
+`availability: unsupported` — the schema rejects any report that marks a null as measured.
+
 ## Design system
 
 Premium **light** theme only: warm off-white canvas, white cards, soft warm shadows, charcoal
@@ -74,6 +89,13 @@ environment variables; the assistant falls back to a deterministic local engine.
   optional server-side proxy for a real model, gated by server-only env vars.
 - `app/api/network/*` — capped, no-store endpoints for throughput measurement
   (8 MB download cap, 4 MB upload cap).
+- `lib/diagnostic/*` — network measurement engines: `quality.ts` (probes/throughput/validity),
+  `survey.ts`, `triage.ts`, `compare.ts`, `report.ts`, `schema.ts`, `capabilities.ts`.
+- `shared/diagnostics.schema.json` — the contract shared with the Android app.
+- `native/android/` — separate Kotlin app (radio, Wi-Fi, dual-SIM, survey, report export).
+  **Source only: it has not been compiled or device-tested in this environment.**
+- `docs/native/` — research record, architecture and the network measurement specification.
+- `app/network/*` and `components/network/*` — the network lab UI.
 - `app/guides`, `app/methodology` — statically rendered content with sources.
 
 ## Privacy and security
@@ -93,6 +115,13 @@ environment variables; the assistant falls back to a deterministic local engine.
   results table to fill in per phone/browser.
 - [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — Vercel setup, environment variables,
   post-deploy checks and rollback.
+- [`docs/native/RESEARCH-NETWORK-CELLULAR.md`](./docs/native/RESEARCH-NETWORK-CELLULAR.md) —
+  primary-source research: Android telephony/Wi-Fi APIs, iOS limits, standards, competitor review.
+- [`docs/native/ARCHITECTURE.md`](./docs/native/ARCHITECTURE.md) — web/native split and contract.
+- [`docs/native/NETWORK-SPEC.md`](./docs/native/NETWORK-SPEC.md) — metric definitions, validity
+  gates, scoring and diagnosis rules.
+- [`native/android/README.md`](./native/android/README.md) — Android build instructions,
+  permissions and known limits.
 
 ## Verification
 
@@ -123,6 +152,18 @@ Phase 2 added a four-profile automation matrix:
   `navigator.maxTouchPoints` during render (plus the battery badge disagreeing with
   its own readings).
 
+Phase 3 added the network lab and the shared report contract:
+
+- `npm run test:contract` — 46 assertions across schema invariants, probe statistics, comparison
+  noise thresholds, triage rules, survey sample minimums and the report builder: **46 passed, 0 failed**;
+- `POST /api/reports` accepts a valid Android-shaped report (200) and rejects a fabricated
+  `null` + `measured` pair with a JSON-pointer error (422); bodies over 4 MB get 413;
+- `tsc --noEmit` clean; production build serves 28 routes and 6 API routes.
+
+The native Android app is **not compiled**: this environment has no JDK, Gradle or Android SDK.
+Radio, Wi-Fi and dual-SIM readings are therefore untested on hardware, and the Phase 4 device table
+is still empty. See `native/android/README.md`.
+
 Physical iOS/Android/Firefox runs are still pending — see
 [`docs/DEVICE_TESTING.md`](./docs/DEVICE_TESTING.md). Numbers vary by machine and load. Full
 method, caveats and the one known transport artifact are in [`AI_BRAIN.md` §7](./AI_BRAIN.md).
@@ -130,3 +171,5 @@ method, caveats and the one known transport artifact are in [`AI_BRAIN.md` §7](
 ## Status
 
 Production build verified locally; live Vercel deployment has **not** been performed.
+Network lab verified in the browser build; native Android app written but not compiled or
+device-tested (`native/android/README.md`).

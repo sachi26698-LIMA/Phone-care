@@ -95,3 +95,30 @@ Copy this table into the PR or an issue and fill it in. Leave rows blank until a
 | iPhone Safari (physical) | | | | | | | | | | | |
 | Desktop Chrome | | | | | | | | | | | |
 | Desktop Firefox | | | | | | | | | | | |
+
+---
+
+## Phase 3 additions — network lab and the Android app
+
+### Browser network lab
+
+- [ ] `/network/quality`: run the test; the values match the progress messages; the report downloads.
+- [ ] Validate the exported report with `POST /api/reports`; expect `ok: true`.
+- [ ] Disable the network mid-test: failures are counted, the index is withheld, no value is fabricated.
+- [ ] `/network/survey`: take three samples in one room; confirm the score appears only after the third.
+- [ ] Confirm no location prompt appears anywhere in the survey.
+- [ ] `/network/troubleshoot`: enter a Wi-Fi RSSI manually; confirm the finding cites it as your input.
+
+### Native Android app
+
+Prerequisites are in [`native/PHASE4-DEVICE-PLAN.md`](./native/PHASE4-DEVICE-PLAN.md). Until that
+build exists, all rows below must stay blank.
+
+- [ ] `./gradlew assembleDebug` succeeds (JDK 17 + Android SDK 35).
+- [ ] Deny location: cellular card shows `permission_denied` rows, link tests still run.
+- [ ] Grant location: RSRP changes when moving to a window; values match `*#*#4636#*#*` within a few dB.
+- [ ] Airplane mode: service state and cell rows become unavailable, not zero.
+- [ ] Dual-SIM device: both slots listed with the correct carrier.
+- [ ] Wi-Fi off: Wi-Fi rows unavailable; cellular rows unaffected.
+- [ ] Export a report and post it to `/api/reports`; expect `ok: true` with no warnings.
+- [ ] Verify nothing is toggled by the app itself (settings, radios, Wi-Fi Calling).

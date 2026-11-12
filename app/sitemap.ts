@@ -5,7 +5,18 @@ import { MODULES } from "@/lib/modules";
 const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://phonecare.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticRoutes = ["", "/diagnostics", "/results", "/assistant", "/guides", "/methodology"];
+  const staticRoutes = [
+    "",
+    "/diagnostics",
+    "/results",
+    "/assistant",
+    "/guides",
+    "/methodology",
+    "/network",
+    "/network/quality",
+    "/network/survey",
+    "/network/troubleshoot",
+  ];
   return [
     ...staticRoutes.map((route) => ({
       url: `${base}${route}`,

@@ -287,10 +287,12 @@ temperature, cycle count, voltage, total disk usage, CPU load or signal strength
 Where those values are needed (capacity, ambient heat), the app asks the user to copy them from
 the OS and labels them `user`.
 
-### 6.2 Native integration (documented, deliberately not implemented)
+### 6.2 Native integration (Phase 3: separate Android app)
 
-Native code is **not** required for any module in this build, and none is shipped. If PhoneCare
-later adds a thin native shell, these are the only APIs worth the cost, with their constraints:
+The browser build remains the source of truth and ships no native code. Phase 3 adds a
+**separate** Android app in `native/android/` — a real Kotlin project sharing the report schema,
+not a webview wrapper. It has **not been compiled in this environment** (no JDK/Android SDK), so
+no value it produces has been verified on a device. The APIs worth the cost, with constraints:
 
 | Data | Android | iOS | Requirement |
 | --- | --- | --- | --- |
@@ -546,6 +548,13 @@ overflow 0 at 320/390/820/1440, no console errors.
 - MDN — Screen Orientation API (`lock()` availability): https://developer.mozilla.org/en-US/docs/Web/API/Screen_Orientation_API
 - MDN — Network Information API availability: https://developer.mozilla.org/en-US/docs/Web/API/Network_Information_API
 - React — Hydration mismatch (`onRecoverableError` / text mismatch): https://react.dev/reference/react-dom/client/hydrateRoot
+- Android — `CellSignalStrengthLte`: https://developer.android.com/reference/android/telephony/CellSignalStrengthLte
+- Android — `TelephonyManager`: https://developer.android.com/reference/android/telephony/TelephonyManager
+- Android — `WifiManager` (`getConnectionInfo` deprecation): https://developer.android.com/reference/android/net/wifi/WifiManager
+- Android 14 — foreground service types: https://developer.android.com/about/versions/14/changes/fgs-types-required
+- Apple — `CTCarrier` deprecation: https://developer.apple.com/documentation/coretelephony/ctcarrier
+- IETF — RFC 6349 TCP throughput methodology: https://www.rfc-editor.org/info/rfc6349/
+- ITU-T — Y.1541 network performance objectives: https://www.itu.int/rec/T-REC-Y.1541
 
 ---
 
@@ -577,6 +586,12 @@ contrast and overflow verification. Remaining: real-device pass on Android/iOS a
 - Web Bluetooth accessory telemetry (explicitly *not* presented as phone internals).
 - Automated accessibility regression tests in CI.
 
+**v1.4 — network intelligence (this build)**
+Web: quality test with validity gates, indoor survey with manual rooms, rule-based troubleshooting,
+noise-aware before/after comparison, shared report schema and `/api/reports` validator.
+Native: separate Kotlin Android app for radio/Wi-Fi/dual-SIM measurements and report export.
+Blocked on hardware and SDK: device validation of every native reading, real indoor coverage study.
+
 ---
 
 ## 11. Decision log
@@ -602,3 +617,137 @@ contrast and overflow verification. Remaining: real-device pass on Android/iOS a
 | 2026-11-09 | An index needs ≥50% of the model weight scored to be called a verdict | With battery (20%) and disk (14%) unknown, the weighted coverage is 42% — enough for a provisional reading, not a verdict |
 | 2026-11-09 | Upload payload is fully random | Test fidelity: a compressible body would overstate upload speed |
 | 2026-11-09 | No absolute "no uploads" claim | The speed test POSTs synthetic bytes to our own endpoint; copy now says no account and no third-party uploads |
+| 2026-11-09 | Native Android app, not a webview shell | Radio metrics and dual-SIM state have no browser API; the app shares the report schema instead of duplicating logic |
+| 2026-11-09 | Radio rows are null with `availability: unsupported` in web reports | Makes fabrication a schema error and documents the platform limit in the data itself |
+| 2026-11-09 | No packet-loss claim from HTTP probes | Probe failures are not dropped packets; conflating them would be the classic speed-test lie |
+| 2026-11-09 | Scores withheld when jitter > 150 ms or failures > 5 % | RFC 6349 §3: a throughput number on a link that unstable is meaningless |
+| 2026-11-09 | Before/after needs 2× uncertainty | Router tweaks mostly land inside noise; claiming victory would be dishonest |
+| 2026-11-09 | No Wi-Fi scanning in the native app | It adds permission surface and cannot reveal router transmit power, which is what users actually want |
+| 2026-11-09 | Survey location is typed, not GPS | Avoids location tracking and keeps the feature usable on desktop |
+
+
+---
+
+## 12. Phase 3 — Network intelligence and the native Android app (2026-11-09)
+
+### 12.1 Research method
+
+Five rounds of primary-source reading before any code: Android telephony and Wi-Fi reference
+pages (API level, permission and "unavailable" semantics), Apple Core Telephony limits, RFC 6349
+for throughput methodology, Android 14/15 foreground-service rules, and seven competing
+diagnostic products (Network Cell Info Lite, OpenSignal, nPerf, CellMapper, WiFiAnalyzer, NetSpot,
+Ookla Speedtest). Findings are recorded in `docs/native/RESEARCH-NETWORK-CELLULAR.md`; product
+scope decisions follow from them, not from preference.
+
+### 12.2 Capability matrix (implemented in `lib/diagnostic/capabilities.ts`)
+
+| Capability | Web | Android | iOS |
+| --- | --- | --- | --- |
+| RTT, jitter, throughput, DNS/TTFB | yes | yes | yes |
+| Probe-failure rate | yes (not packet loss) | yes | yes |
+| LTE RSRP/RSRQ/RSSNR | **no** | permission (API 26+) | **no** |
+| 5G NR SS-RSRP/RSRQ/SINR | **no** | permission (API 29+) | **no** |
+| Cell identity, band, timing advance | **no** | permission | **no** |
+| Dual-SIM carrier/state | **no** | permission | **no** |
+| Wi-Fi RSSI / band / link speed | **no** | permission | **no** |
+| Wi-Fi scan / channel occupancy | **no** | permission | **no** |
+| Packet loss | **no** | only with root/VPN | only with elevated tooling |
+| Deep-link to network settings | **no** | yes | partial |
+
+Consequences baked into the product: no browser card ever shows a dBm value; the Android app is
+the only place radio metrics appear; the report schema marks every radio row as
+`availability: unsupported` in a web report.
+
+### 12.3 Permission matrix (Android)
+
+| Permission | Needed for | Requested when | If denied | If permanently denied |
+| --- | --- | --- | --- | --- |
+| `ACCESS_FINE_LOCATION` | cell identity + signal, SSID | tapping "Read cellular" | empty cellular card with reason; link tests still work | button to app settings |
+| `READ_PHONE_STATE` | carrier, RAT, SIM slots | same gesture | carrier/SIM rows unavailable | button to app settings |
+| `ACCESS_NETWORK_STATE` / `ACCESS_WIFI_STATE` | connected-link metrics | normal permissions, no prompt | n/a | n/a |
+| `NEARBY_WIFI_DEVICES` (declared, unused) | future scanning only | never in this build | n/a | n/a |
+
+Location is used *only* because Android gates cell identity behind it. The app requests no
+location fix, stores no coordinates, and has no background permission. Room names are typed by
+the user, so the survey works without location at all.
+
+### 12.4 Measurement standards
+
+- **RFC 6349 principles**, not compliance: measure each direction separately; minimum RTT as the
+  baseline; refuse to score when jitter > 150 ms or probe failures > 5 %.
+- **ITU-T Y.1541** bands inform the latency score; no QoS class is claimed.
+- **RFC 3550-style** jitter: mean absolute difference of consecutive RTTs.
+- Every published number carries `source`, `timestamp`, `evidence`, `availability` and, where it
+  exists, an uncertainty (sample spread, or the modem's 1 dB resolution).
+- RSRP bands (≥ −80 excellent … < −110 very weak) are indicative industry bands, not carrier
+  guarantees.
+
+### 12.5 Diagnosis logic
+
+Rules live in `lib/diagnostic/triage.ts` and fire only when their inputs exist:
+
+| Inputs | Conclusion | Confidence |
+| --- | --- | --- |
+| Wi-Fi RSSI < −75 and cellular RSRP ≥ −95 | Wi-Fi coverage, not carrier | likely |
+| Wi-Fi RSSI ≥ −60 and RTT > 150 ms | upstream / congestion | likely |
+| Cellular RSRP < −105 | cellular coverage | likely |
+| DNS > 100 ms with TTFB < 60 ms | name resolution | possible |
+| Strong radio and download < 2 Mbps | congestion or backhaul | possible |
+| Jitter > 60 ms or failures > 5 % | instability, not slowness | likely |
+| Room scores differ by ≥ 25 | location-specific coverage | likely |
+| No anomaly but the user reports one | measurement window too short | possible |
+
+Unknown inputs downgrade the output to `insufficient_data` and list exactly what is missing. No
+conclusion is emitted without its evidence lines, and the engine has no "verified fix" state — a
+fix is only proven by a before/after comparison that exceeds the noise band.
+
+### 12.6 Before/after honesty
+
+`lib/diagnostic/compare.ts` requires the change to exceed **twice the combined uncertainty**
+(latency: derived from each run's half-IQR; throughput: 10 % floor). Otherwise the verdict is
+"no measurable change". Different servers, fewer than three samples, and single-run comparisons
+are surfaced as caveats rather than silently ignored.
+
+### 12.7 Privacy rules
+
+Measurements stay in `localStorage` / app-private storage. No analytics, no accounts, no upload
+unless the user explicitly posts a report to `/api/reports` (validation only, no storage). No Wi-Fi
+credentials, no location track, no background collection. Android survey runs foreground-only,
+which also avoids Android 15's time limit on `dataSync` foreground services.
+
+### 12.8 Limitations that remain
+
+1. **Native code is uncompiled and untested** — no JDK, Gradle or Android SDK in this environment.
+2. Same-origin throughput includes the distance to this deployment; not comparable to ISP figures.
+3. Browser probe failures are HTTP-level; packet loss is not measurable without native privileges.
+4. Wi-Fi RSSI is driver-quantised; channel width and neighbour occupancy are not available without scanning.
+5. iOS has no public cellular signal or Wi-Fi RSSI API, so a comparable iOS app is not feasible.
+6. Real indoor coverage still depends on construction, materials and the access point's placement;
+   nothing here can change radio physics.
+
+### 12.9 Test evidence for this phase
+
+| Check | Result |
+| --- | --- |
+| `tsc --noEmit` | 0 errors |
+| `next build` | success, 28 routes, 6 API routes |
+| `npm run test:contract` | 46 assertions, 0 failures (schema invariants, probe stats, comparison noise, triage rules, survey thresholds, report builder) |
+| `POST /api/reports` with a valid Android report | 200, normalized echo |
+| `POST /api/reports` with fabricated value (`null` + `measured`) | 422 with JSON-pointer path |
+| Oversized body | 413 cap enforced at 4 MB |
+| Android build | **not run** — no SDK in this environment |
+| Real-device measurement | **not run** — requires hardware |
+
+### 12.10 Phase status
+
+| Phase | Status |
+| --- | --- |
+| 1 research + architecture | ✅ `docs/native/` |
+| 2 diagnostics specification | ✅ `docs/native/NETWORK-SPEC.md` |
+| 3 native prototype | ⚠️ source written, **not compiled** |
+| 4 real device measurements | ⛔ blocked: needs hardware |
+| 5 indoor mapping | ✅ web survey implemented; native session code written |
+| 6 AI troubleshooting | ✅ deterministic triage + comparison |
+| 7 website integration | ✅ shared schema, validator, endpoint, labs linked |
+| 8 security/performance | ⚠️ web verified; native blocked |
+| 9 release readiness | ⛔ cannot be claimed without Phase 4 |

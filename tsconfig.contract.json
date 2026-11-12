@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".contract-build",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "declaration": false,
+    "incremental": false,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "lib/diagnostic/schema.ts",
+    "lib/diagnostic/quality.ts",
+    "lib/diagnostic/survey.ts",
+    "lib/diagnostic/compare.ts",
+    "lib/diagnostic/triage.ts",
+    "lib/diagnostic/report.ts"
+  ]
+}
