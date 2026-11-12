@@ -241,11 +241,24 @@ jobs:
             echo "SDK=$ANDROID_HOME"
             adb version
             yes | timeout 300 sdkmanager --licenses > /dev/null 2>&1 || true
-            timeout 900 sdkmanager --install "platform-tools" "emulator" \
-              "system-images;android-34;google_apis;x86_64" 2>&1 | tail -4
+            # A truncated package download ('Error on ZipFile unknown archive') fails the run
+            # before anything is tested, so give the download a second and third chance.
+            for attempt in 1 2 3; do
+              echo "sdkmanager attempt $attempt"
+              if timeout 900 sdkmanager --install "platform-tools" "emulator" \
+                   "system-images;android-34;google_apis;x86_64" 2>&1 | tail -3; then
+                if [ -d "$ANDROID_HOME/system-images/android-34/google_apis/x86_64" ]; then
+                  echo "system image present"; break
+                fi
+              fi
+              sleep 10
+            done
+            [ -d "$ANDROID_HOME/system-images/android-34/google_apis/x86_64" ] \
+              || { echo "::error::system image never installed"; exit 1; }
             echo no | timeout 120 avdmanager create avd -n walk \
               -k "system-images;android-34;google_apis;x86_64" -d pixel_5 --force
             echo "--- avdmanager list ---"; avdmanager list avd | head -12
+            avdmanager list avd | grep -q "walk" || { echo "::error::AVD walk was not created"; exit 1; }
             # avdmanager and the emulator disagree about where $ANDROID_AVD_HOME points unless it
             # is set explicitly, so find the .ini that was just written and use its directory.
             AVD_INI=$(find "$HOME" /root/.android -maxdepth 5 -name walk.ini 2>/dev/null | head -1)
@@ -271,7 +284,8 @@ jobs:
             echo "boot_completed=$booted after ~$((i*5))s"
             adb shell wm dismiss-keyguard || true
             echo "== emulator log tail"; tail -30 /tmp/emulator.log
-          } 2>&1 | tee "$LOG"
+            echo "== run ${GITHUB_RUN_ID:-local} at $(date -u +%FT%TZ)"
+          } 2>&1 | tee -a "$LOG"
           adb devices | grep -q "emulator.*device" || { echo "::error::no emulator device attached"; exit 1; }
           grep -q "boot_completed=1" "$LOG" || { echo "::error::emulator never finished booting"; exit 1; }
 
