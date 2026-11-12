@@ -1,0 +1,80 @@
+# Android UI walk — emulator run
+
+- Steps: **46** · pass 34 · fail 10 · notes 1 · skipped 1
+- Screenshots: **20** in this folder
+- Device: Device: sdk_gphone64_x86_64 · Android 14 (API 34) · emulator, not physical hardware
+
+> Produced by `native/android/ui-walk.py` on a GitHub Actions emulator. This is emulator
+> evidence, not a physical handset. Every line came from a `uiautomator` dump or `logcat`.
+
+| Result | Step | Detail |
+| --- | --- | --- |
+| ✅ | Emulator finished booting | 1 |
+| ✅ | Install APK | 1054062 bytes, runtime permissions granted |
+| ✅ | Launch MainActivity | Complete |
+| ✅ | Dashboard renders | app bar title and content present |
+| ✅ | Tab Home → Dashboard |  |
+| ✅ | Tab Diagnose → Diagnostics |  |
+| ✅ | Tab Network → Network |  |
+| ✅ | Tab Results → Results |  |
+| ✅ | Tab More → More |  |
+| ✅ | Device identity opens |  |
+| ✅ | Device identity back returns to Diagnostics |  |
+| ✅ | Battery & health opens |  |
+| ✅ | Battery & health back returns to Diagnostics |  |
+| ✅ | Storage opens |  |
+| ✅ | Storage back returns to Diagnostics |  |
+| ✅ | Temperature opens |  |
+| ✅ | Temperature back returns to Diagnostics |  |
+| ✅ | Display opens |  |
+| ✅ | Display back returns to Diagnostics |  |
+| ✅ | Touch opens |  |
+| ✅ | Touch back returns to Diagnostics |  |
+| ✅ | Performance opens |  |
+| ✅ | Performance back returns to Diagnostics |  |
+| ✅ | Compatibility opens |  |
+| ✅ | Compatibility back returns to Diagnostics |  |
+| ✅ | Cellular diagnostics opens |  |
+| ✅ | Cellular diagnostics back returns to Network |  |
+| ✅ | Wi-Fi diagnostics opens |  |
+| ✅ | Wi-Fi diagnostics back returns to Network |  |
+| ✅ | Internet quality opens |  |
+| ❌ | Internet quality back returns to Network | hub title missing after back |
+| ❌ | Indoor survey opens | row not found on the hub screen |
+| ❌ | Troubleshoot opens | row not found on the hub screen |
+| ❌ | Guides opens | row not found on the hub screen |
+| ❌ | Assistant opens | row not found on the hub screen |
+| ❌ | Methodology opens | row not found on the hub screen |
+| ❌ | Settings opens | row not found on the hub screen |
+| ❌ | Privacy & permissions opens | row not found on the hub screen |
+| ❌ | Guides opens from More | row missing |
+| ✅ | Guide search filters results | typed 'wifi' |
+| ❌ | Run full check button present | primary button not found |
+| ⏭️ | Export opens the system share sheet | no saved report on a freshly cleared profile |
+| ℹ️ | System dark mode captured | the app must stay light; compare 01-dashboard |
+| ✅ | Wide layout still renders the dashboard | 1600x1000 @ 160 dpi (800x500 dp) |
+| ✅ | No uncaught exceptions in logcat | clean run |
+| ✅ | App process still alive at the end |  |
+
+## Screenshots
+
+- `01-dashboard.png`
+- `tab-home.png`
+- `tab-diagnose.png`
+- `tab-network.png`
+- `tab-results.png`
+- `tab-more.png`
+- `03-device-identity.png`
+- `04-battery-health.png`
+- `05-storage.png`
+- `06-temperature.png`
+- `07-display.png`
+- `08-touch.png`
+- `09-performance.png`
+- `10-compatibility.png`
+- `11-cellular-diagnostics.png`
+- `12-wi-fi-diagnostics.png`
+- `13-internet-quality.png`
+- `23-guides-search.png`
+- `28-system-dark-mode.png`
+- `29-wide-layout.png`

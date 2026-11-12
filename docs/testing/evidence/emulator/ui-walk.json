@@ -1,0 +1,260 @@
+{
+  "steps": [
+    {
+      "status": "pass",
+      "name": "Emulator finished booting",
+      "detail": "1"
+    },
+    {
+      "status": "pass",
+      "name": "Install APK",
+      "detail": "1054062 bytes, runtime permissions granted"
+    },
+    {
+      "status": "pass",
+      "name": "Launch MainActivity",
+      "detail": "Complete"
+    },
+    {
+      "status": "pass",
+      "name": "Dashboard renders",
+      "detail": "app bar title and content present"
+    },
+    {
+      "status": "pass",
+      "name": "Tab Home \u2192 Dashboard",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Tab Diagnose \u2192 Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Tab Network \u2192 Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Tab Results \u2192 Results",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Tab More \u2192 More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Device identity opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Device identity back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Battery & health opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Battery & health back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Storage opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Storage back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Temperature opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Temperature back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Display opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Display back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Touch opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Touch back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Performance opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Performance back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Compatibility opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Compatibility back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Cellular diagnostics opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Cellular diagnostics back returns to Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Wi-Fi diagnostics opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Wi-Fi diagnostics back returns to Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Internet quality opens",
+      "detail": ""
+    },
+    {
+      "status": "fail",
+      "name": "Internet quality back returns to Network",
+      "detail": "hub title missing after back"
+    },
+    {
+      "status": "fail",
+      "name": "Indoor survey opens",
+      "detail": "row not found on the hub screen"
+    },
+    {
+      "status": "fail",
+      "name": "Troubleshoot opens",
+      "detail": "row not found on the hub screen"
+    },
+    {
+      "status": "fail",
+      "name": "Guides opens",
+      "detail": "row not found on the hub screen"
+    },
+    {
+      "status": "fail",
+      "name": "Assistant opens",
+      "detail": "row not found on the hub screen"
+    },
+    {
+      "status": "fail",
+      "name": "Methodology opens",
+      "detail": "row not found on the hub screen"
+    },
+    {
+      "status": "fail",
+      "name": "Settings opens",
+      "detail": "row not found on the hub screen"
+    },
+    {
+      "status": "fail",
+      "name": "Privacy & permissions opens",
+      "detail": "row not found on the hub screen"
+    },
+    {
+      "status": "fail",
+      "name": "Guides opens from More",
+      "detail": "row missing"
+    },
+    {
+      "status": "pass",
+      "name": "Guide search filters results",
+      "detail": "typed 'wifi'"
+    },
+    {
+      "status": "fail",
+      "name": "Run full check button present",
+      "detail": "primary button not found"
+    },
+    {
+      "status": "skip",
+      "name": "Export opens the system share sheet",
+      "detail": "no saved report on a freshly cleared profile"
+    },
+    {
+      "status": "soft",
+      "name": "System dark mode captured",
+      "detail": "the app must stay light; compare 01-dashboard"
+    },
+    {
+      "status": "pass",
+      "name": "Wide layout still renders the dashboard",
+      "detail": "1600x1000 @ 160 dpi (800x500 dp)"
+    },
+    {
+      "status": "pass",
+      "name": "No uncaught exceptions in logcat",
+      "detail": "clean run"
+    },
+    {
+      "status": "pass",
+      "name": "App process still alive at the end",
+      "detail": ""
+    }
+  ],
+  "shots": [
+    "01-dashboard.png",
+    "tab-home.png",
+    "tab-diagnose.png",
+    "tab-network.png",
+    "tab-results.png",
+    "tab-more.png",
+    "03-device-identity.png",
+    "04-battery-health.png",
+    "05-storage.png",
+    "06-temperature.png",
+    "07-display.png",
+    "08-touch.png",
+    "09-performance.png",
+    "10-compatibility.png",
+    "11-cellular-diagnostics.png",
+    "12-wi-fi-diagnostics.png",
+    "13-internet-quality.png",
+    "23-guides-search.png",
+    "28-system-dark-mode.png",
+    "29-wide-layout.png"
+  ],
+  "notes": [
+    "Device: sdk_gphone64_x86_64 \u00b7 Android 14 (API 34) \u00b7 emulator, not physical hardware",
+    "Foreground window after launch: mCurrentFocus=Window{25b0fb9 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
+  ]
+}
