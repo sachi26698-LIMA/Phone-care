@@ -59,7 +59,7 @@
 | ✅ | Cellular read returns values or a stated reason | measured |
 | ✅ | Guide detail opens | battery-health-decline |
 | ✅ | Guide back returns to the list |  |
-| ❌ | Guide search filters results | field text present=True, matching guide present=False |
+| ❌ | Guide search filters results | field=True no-match-shown=False visible=['‹ Back', 'PC', 'PhoneCare', 'native', 'Cellular complete.', 'Guides', 'The same eight guides as the website, generated from one source.', 'wifi'] |
 | ℹ️ | Permission dialog shown | no request was needed on this emulator image |
 | ✅ | Full check reports progress or results | on-screen measurement text present |
 | ✅ | Export opens the system share sheet | No recommended people to share with |

@@ -253,7 +253,7 @@
     {
       "status": "fail",
       "name": "Guide search filters results",
-      "detail": "field text present=True, matching guide present=False"
+      "detail": "field=True no-match-shown=False visible=['\u2039 Back', 'PC', 'PhoneCare', 'native', 'Cellular complete.', 'Guides', 'The same eight guides as the website, generated from one source.', 'wifi']"
     },
     {
       "status": "soft",
@@ -332,6 +332,6 @@
   ],
   "notes": [
     "Device: sdk_gphone64_x86_64 \u00b7 Android 14 (API 34) \u00b7 emulator, not physical hardware",
-    "Foreground window after launch: mCurrentFocus=Window{ceb53fe u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
+    "Foreground window after launch: mCurrentFocus=Window{3fe98d0 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
   ]
 }
