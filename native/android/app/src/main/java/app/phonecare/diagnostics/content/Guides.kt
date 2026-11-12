@@ -233,17 +233,26 @@ GuideSource("MDN · Network Information API", "https://developer.mozilla.org/en-
 
     fun bySlug(slug: String): Guide? = all.firstOrNull { it.slug == slug }
 
-    /** Search matches title, summary, category and symptoms — same fields as the website. */
+    /**
+     * Search matches title, summary, category and symptoms — same fields as the website.
+     *
+     * Matching ignores punctuation, because a phone keyboard makes "wifi" the obvious query and
+     * the article calls itself "Wi-Fi". Stripping non-alphanumerics from both sides fixes that
+     * without a synonym table.
+     */
     fun search(query: String): List<Guide> {
-        val q = query.trim().lowercase()
+        val q = normalise(query)
         if (q.isEmpty()) return all
         return all.filter { guide ->
-            guide.title.lowercase().contains(q) ||
-                guide.summary.lowercase().contains(q) ||
-                guide.category.lowercase().contains(q) ||
-                guide.symptoms.any { it.lowercase().contains(q) }
+            normalise(guide.title).contains(q) ||
+                normalise(guide.summary).contains(q) ||
+                normalise(guide.category).contains(q) ||
+                guide.symptoms.any { normalise(it).contains(q) }
         }
     }
+
+    private fun normalise(value: String): String =
+        value.lowercase().filter { it.isLetterOrDigit() }
 
     val categories: List<String> get() = all.map { it.category }.distinct().sorted()
 }

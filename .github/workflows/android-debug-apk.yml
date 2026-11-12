@@ -320,5 +320,11 @@ jobs:
             echo "no evidence changes to publish"
           else
             git commit -m "ui validation: emulator run evidence [skip ci]"
-            git push
+            # Another job may have committed while this one was booting an emulator.
+            for attempt in 1 2 3; do
+              if git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push; then
+                echo "evidence pushed on attempt $attempt"; break
+              fi
+              sleep 5
+            done
           fi

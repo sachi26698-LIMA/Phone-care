@@ -10,6 +10,7 @@ import app.phonecare.diagnostics.core.DeviceInfo
 import app.phonecare.diagnostics.core.NetworkInfo
 import app.phonecare.diagnostics.core.SessionInfo
 import app.phonecare.diagnostics.optimization.TipInput
+import app.phonecare.diagnostics.content.Guides
 import app.phonecare.diagnostics.optimization.tips
 import app.phonecare.diagnostics.quality.InternetQualityEngine
 import app.phonecare.diagnostics.survey.SurveySession
@@ -166,6 +167,11 @@ fun runEngineChecks(verbose: Boolean = true): List<String> {
     val nothing = tips(baseInput)
     check("healthy input reports no fault", nothing.any { it.id == "no-fault" })
     check("every answer states the product boundary", nothing.last().id == "limits")
+
+    // --- guide search ------------------------------------------------------
+    check("guide search folds punctuation", Guides.search("wifi").any { it.slug == "slow-wifi" })
+    check("guide search matches categories", Guides.search("battery").isNotEmpty())
+    check("guide search has a shared count", Guides.all.size == 8)
 
     // --- survey classification --------------------------------------------
     check("RSRP band excellent", SurveySession.classifyRsrp(-75.0) == "Excellent")
