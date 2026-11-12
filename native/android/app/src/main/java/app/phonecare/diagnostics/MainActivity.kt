@@ -3,7 +3,9 @@ package app.phonecare.diagnostics
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
@@ -56,7 +58,13 @@ class MainActivity : Activity(), Host {
         state = AppState(applicationContext)
         permissions = PermissionManager(this)
 
-        root = Layout.column(this).apply { setBackgroundColor(Tokens.BG) }
+        root = Layout.column(this).apply {
+            setBackgroundColor(Tokens.BG)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+            )
+        }
         root.addView(buildAppBar())
         scroll = ScrollView(this).apply {
             isFillViewport = true
@@ -74,12 +82,46 @@ class MainActivity : Activity(), Host {
         setContentView(root)
 
         show(Screen.DASHBOARD, resetStack = true)
+        if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+            root.post { dumpTree() }
+        }
+    }
+
+    /**
+     * Debug builds log the laid-out tree. The emulator walk reads it back with `logcat -s
+     * PhoneCareDiag`, which is how a layout defect gets diagnosed from evidence instead of a
+     * screenshot and a guess. Never runs in a release build.
+     */
+    private fun dumpTree() {
+        fun emit(view: View, depth: Int) {
+            if (depth > 6) return
+            val params = view.layoutParams
+            val name = view.javaClass.simpleName
+            val orientation = (view as? LinearLayout)?.let {
+                if (it.orientation == LinearLayout.HORIZONTAL) "H" else "V"
+            } ?: ""
+            val label = (view as? TextView)?.text?.toString()?.take(24)?.replace("\n", " ") ?: ""
+            Log.i(
+                "PhoneCareDiag",
+                "${"  ".repeat(depth)}$name$orientation w=${view.width} h=${view.height} " +
+                    "params=(${params?.width},${params?.height}) vis=${view.visibility} $label",
+            )
+            if (view is android.view.ViewGroup) {
+                for (i in 0 until view.childCount) emit(view.getChildAt(i), depth + 1)
+            }
+        }
+        Log.i("PhoneCareDiag", "=== tree after Dashboard layout, window=${root.width}x${root.height}")
+        emit(root, 0)
     }
 
     // ------------------------------------------------------------------ chrome
 
     private fun buildAppBar(): View {
         val bar = Layout.column(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
             setBackgroundColor(Tokens.SURFACE)
             setPadding(
                 Tokens.dp(this@MainActivity, Tokens.SPACE_L),
@@ -88,7 +130,12 @@ class MainActivity : Activity(), Host {
                 Tokens.dp(this@MainActivity, Tokens.SPACE_S),
             )
         }
-        val top = Layout.row(this)
+        val top = Layout.row(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+        }
         top.addView(
             Ui.text(this, "PhoneCare", Type.SECTION, Tokens.VIOLET, bold = true).apply {
                 setLetterSpacing(0.02f)
@@ -114,6 +161,10 @@ class MainActivity : Activity(), Host {
 
     private fun buildNavBar(): LinearLayout {
         val bar = Layout.row(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
             setBackgroundColor(Tokens.SURFACE)
             setPadding(
                 Tokens.dp(this@MainActivity, Tokens.SPACE_S),

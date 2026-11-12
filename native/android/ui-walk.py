@@ -254,8 +254,12 @@ def main() -> int:
         # Capture exactly what the device shows so the failure is diagnosable, not guessed at.
         (EVIDENCE / "dump-after-launch.xml").write_text(LAST_XML or "(empty dump)")
         shot("FAIL-after-launch")
-        rc, logcat = adb("shell", "logcat", "-d", "-t", "400")
+        rc, logcat = adb("shell", "logcat", "-d", "-t", "2000")
         (EVIDENCE / "logcat-after-launch.txt").write_text(logcat)
+        rc, diag = adb("shell", "logcat", "-d", "-s", "PhoneCareDiag:*")
+        (EVIDENCE / "view-tree.txt").write_text(diag)
+        rc, top = adb("shell", "dumpsys", "activity", "top")
+        (EVIDENCE / "activity-top.txt").write_text(top[:200_000])
         preview = " | ".join(t for t, *_ in nodes(LAST_XML)[:8]) or "(no labelled nodes)"
         record("fail", "Dashboard renders",
                f"foreground={focused}; nodes: {preview}"[:400])
