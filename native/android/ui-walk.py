@@ -33,6 +33,7 @@ SCREEN = (720, 1280)  # 720x1280 @ 320 dpi = 360x640 dp, a real small-phone view
 DENSITY = 320
 
 STEPS: list[dict[str, str]] = []
+LAST_XML = ""
 SHOTS: list[str] = []
 NOTES: list[str] = []
 
@@ -68,6 +69,8 @@ def dump() -> str:
         adb("shell", "uiautomator", "dump", "/sdcard/ui.xml", timeout=60)
         rc, xml = adb("shell", "cat", "/sdcard/ui.xml", timeout=60)
         if rc == 0 and xml.lstrip().startswith("<"):
+            global LAST_XML
+            LAST_XML = xml
             return xml
         time.sleep(1)
     return ""
@@ -235,11 +238,27 @@ def main() -> int:
     record("pass", "Install APK", f"{Path(APK).stat().st_size} bytes, runtime permissions granted")
 
     adb("shell", "pm", "clear", PKG)  # start from a clean profile
+    adb("shell", "input", "keyevent", "KEYCODE_WAKEUP")
+    adb("shell", "wm", "dismiss-keyguard")
+    adb("shell", "settings", "put", "system", "screen_off_timeout", "1800000")
+    time.sleep(1.0)
     rc, out = adb("shell", "am", "start", "-W", "-n", f"{PKG}/.MainActivity", timeout=120)
     launched = "Status: ok" in out or "Activity" in out
     record("pass" if launched else "fail", "Launch MainActivity", out.strip().splitlines()[-1] if out.strip() else "")
+    rc, focus = adb("shell", "dumpsys", "window")
+    focused = next((ln.strip() for ln in focus.splitlines() if "mCurrentFocus" in ln), "unknown")
+    NOTES.append(f"Foreground window after launch: {focused}")
+    print(f"foreground: {focused}", flush=True)
+
     if not wait_for("Dashboard", 25):
-        record("fail", "Dashboard renders", "no accessibility node after launch")
+        # Capture exactly what the device shows so the failure is diagnosable, not guessed at.
+        (EVIDENCE / "dump-after-launch.xml").write_text(LAST_XML or "(empty dump)")
+        shot("FAIL-after-launch")
+        rc, logcat = adb("shell", "logcat", "-d", "-t", "400")
+        (EVIDENCE / "logcat-after-launch.txt").write_text(logcat)
+        preview = " | ".join(t for t, *_ in nodes(LAST_XML)[:8]) or "(no labelled nodes)"
+        record("fail", "Dashboard renders",
+               f"foreground={focused}; nodes: {preview}"[:400])
         return 1
     record("pass", "Dashboard renders", "app bar title and content present")
     time.sleep(1.5)
