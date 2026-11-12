@@ -197,7 +197,6 @@ jobs:
     env:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_AVD_HOME: /home/runner/.android/avd
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -246,6 +245,14 @@ jobs:
               "system-images;android-34;google_apis;x86_64" 2>&1 | tail -4
             echo no | timeout 120 avdmanager create avd -n walk \
               -k "system-images;android-34;google_apis;x86_64" -d pixel_5 --force
+            echo "--- avdmanager list ---"; avdmanager list avd | head -12
+            # avdmanager and the emulator disagree about where $ANDROID_AVD_HOME points unless it
+            # is set explicitly, so find the .ini that was just written and use its directory.
+            AVD_INI=$(find "$HOME" /root/.android -maxdepth 5 -name walk.ini 2>/dev/null | head -1)
+            echo "avd ini: ${AVD_INI:-not found}"
+            if [ -n "$AVD_INI" ]; then export ANDROID_AVD_HOME=$(dirname "$AVD_INI"); fi
+            echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME"
+            emulator -list-avds
             adb start-server
             nohup "$ANDROID_HOME/emulator/emulator" -avd walk -no-window -no-audio -no-boot-anim \
               -no-snapshot -gpu swiftshader_indirect -no-metrics -camera-back none -camera-front none \
