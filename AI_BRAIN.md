@@ -838,3 +838,32 @@ with JDK 17 + Android SDK, printing the APK path, size and SHA-256.
    differences between modem-reported and browser-measured values must stay visible, not averaged.
 5. Optional hardening: instrumented tests (`androidTest`) for the permission matrix; `d8 --release`
    shrinking once a real build exists.
+
+---
+
+## 14. Dual-platform build pipeline
+
+Both products are first-class; neither is a demo of the other.
+
+| Platform | Gate | Status |
+| --- | --- | --- |
+| Web | `npx tsc --noEmit`, `npm run test:contract`, `npm run build` | ✅ green locally; `.github/workflows/web-checks.yml` written, unexecuted |
+| Android | `gradle testDebugUnitTest`, `gradle assembleDebug`, APK assertions | 📝 workflow written and YAML-validated; **requires an approved push to run** |
+
+`.github/workflows/android-debug-apk.yml` does not merely build: it fails the job unless the APK
+exists, the badging matches package / minSdk 26 / targetSdk 35 / launcher activity, `classes.dex`
+and `resources.arsc` are present, and `apksigner verify` reports a **v2 signature**. The artifact
+(`phonecare-debug-apk`) carries the APK, its SHA-256, badging, contents and signature transcript,
+so a download can be checked instead of trusted.
+
+Why cloud CI is the right answer here: this sandbox cannot reach Google Maven and has no `d8` or
+`apksigner`, so no APK can exist locally. GitHub's runners have the SDK; the repository therefore
+needs one approved push, not a workaround.
+
+Shared definitions stay shared: `shared/diagnostics.schema.json` + `lib/diagnostic/*` (web) and
+`native/android/.../core` (Kotlin) are checked by two independent harnesses
+(`scripts/contract-test.cjs` 46 assertions, `verification/EngineChecks.kt` 27 checks, plus 4 JUnit
+tests), so a drift in one platform shows up as a failing test rather than a silent mismatch.
+
+Browser readings and native readings are never merged: `/network` labels each capability with its
+source, and Android measurements carry `evidence` + `source` describing the telephony API used.

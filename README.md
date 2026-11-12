@@ -92,6 +92,10 @@ environment variables; the assistant falls back to a deterministic local engine.
 - `lib/diagnostic/*` — network measurement engines: `quality.ts` (probes/throughput/validity),
   `survey.ts`, `triage.ts`, `compare.ts`, `report.ts`, `schema.ts`, `capabilities.ts`.
 - `shared/diagnostics.schema.json` — the contract shared with the Android app.
+- `.github/workflows/` — `web-checks.yml` (typecheck, contract tests, build) and
+  `android-debug-apk.yml` (unit tests, `assembleDebug`, APK verification, artifact upload).
+- `docs/testing/` — separate test reports: [`WEB-TEST-REPORT.md`](./docs/testing/WEB-TEST-REPORT.md)
+  and [`ANDROID-TEST-REPORT.md`](./docs/testing/ANDROID-TEST-REPORT.md).
 - `native/android/` — separate Kotlin app (radio, Wi-Fi, dual-SIM, survey, report export).
   **Compiles against `android.jar` API 35 and passes 27 engine checks; the APK has not been built**
   (no Android SDK/`d8`/`apksigner` in this environment — see `native/android/README.md` §1).
