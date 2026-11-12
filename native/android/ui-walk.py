@@ -123,13 +123,23 @@ def find(text: str, *, scroll: int = 0, bottom_most: bool = False,
     """
     for attempt in range(scroll + 1):
         w, h = screen_size()
-        matches = [
+        candidates = [
             n for n in nodes(dump())
             if text.lower() in n[0].lower()
             and (not above_nav or (n[4] > 340 and n[3] < h - 140))
         ]
-        if matches:
-            chosen = max(matches, key=lambda n: n[3]) if bottom_most else matches[0]
+        if candidates:
+            # "Guides, the assistant and everything this app does with your data" also contains
+            # "Guides"; tapping it silently did nothing and the walk blamed the app. Exact label
+            # wins, then prefix, then substring.
+            def rank(node):
+                label = node[0].lower()
+                weight = 3 if label == text.lower() else 2 if label.startswith(text.lower()) else 1
+                return weight
+
+            best = max(rank(n) for n in candidates)
+            pool = [n for n in candidates if rank(n) == best]
+            chosen = max(pool, key=lambda n: n[3]) if bottom_most else pool[0]
             tap_y = chosen[4] + 24 if above_nav else chosen[2]
             return chosen[1], tap_y
         if attempt < scroll:
@@ -370,35 +380,48 @@ def main() -> int:
                    "" if returned else "hub title missing after back")
 
     # --- permission flow and a real cellular read ------------------------------------
+    def grant_prompts(limit: int = 3) -> int:
+        """Tap through consecutive system permission prompts; returns how many were granted."""
+        granted = 0
+        for step in range(limit):
+            time.sleep(2.2)
+            texts = [t for t, *_ in nodes(dump())]
+            prompt = next((t for t in texts
+                           if re.search(r"while using the app|\ballow\b|don.t allow", t, re.I)), None)
+            if not prompt:
+                break
+            if granted == 0:
+                record("pass", "Permission request shows the system prompt", prompt[:80])
+                shot("25-permission-dialog")
+            spot = find("While using the app") or find("Allow")
+            if not spot:
+                break
+            adb("shell", "input", "tap", str(spot[0]), str(spot[1]))
+            granted += 1
+        if granted:
+            record("pass", "Permissions granted from the prompts",
+                   f"{granted} system prompt(s) accepted")
+        return granted
+
     tap("Network", bottom_most=True)
     wait_for_header("Network", 12)
     if tap("Cellular diagnostics", scroll=5, above_nav=True):
         wait_for_header("Cellular", 12)
         if find("Grant access", above_nav=True) and tap("Grant access", above_nav=True):
-            time.sleep(2.5)
-            dialog = [t for t, *_ in nodes(dump()) if re.search(r"while using the app|\ballow\b|don.t allow", t, re.I)]
-            if dialog:
-                record("pass", "Permission request shows the system prompt", dialog[0][:70])
-                shot("25-permission-dialog")
-                spot = find("While using the app") or find("Allow")
-                if spot:
-                    adb("shell", "input", "tap", str(spot[0]), str(spot[1]))
-                    record("pass", "Permission granted from the prompt", "tapped the system dialog")
-                    time.sleep(2.5)
-            else:
-                record("fail", "Permission request shows the system prompt", "no prompt after Grant access")
+            if grant_prompts() == 0:
+                record("fail", "Permission request shows the system prompt",
+                       "no system prompt after Grant access")
         else:
             record("soft", "Permission request shows the system prompt", "permissions already held")
 
         if tap("Read cellular now", above_nav=True):
-            time.sleep(7.0)
-            xml = dump()
-            texts = [t for t, *_ in nodes(xml)]
-            numbers = [t for t in texts if re.search(r"-?\d+(\.\d+)?\s*dBm|dB|RSRP|SINR", t, re.I)]
-            reason = [t for t in texts if re.search(r"not available|unavailable|requires", t, re.I)]
+            time.sleep(8.0)
+            texts = [t for t, *_ in nodes(dump())]
+            numbers = [t for t in texts if re.search(r"-?\d+(\.\d+)?\s*dBm|dB\b|RSRP|SINR|MHz", t, re.I)]
+            reason = [t for t in texts if re.search(r"not available|unavailable|requires|denied", t, re.I)]
             ok = bool(numbers) or bool(reason)
             record("pass" if ok else "fail", "Cellular read returns values or a stated reason",
-                   (numbers + reason)[0][:80] if ok else "neither a measurement nor an explanation appeared")
+                   (numbers + reason)[0][:90] if ok else "neither a measurement nor an explanation appeared")
             shot("26-cellular-read")
         else:
             record("fail", "Read cellular now button present", "button not found on the Cellular screen")
