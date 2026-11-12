@@ -12,7 +12,7 @@
 | TypeScript | `npx tsc --noEmit` | **0 errors** |
 | Shared contract | `npm run test:contract` | **46 passed, 0 failed** |
 | Production build | `npm run build` | **exit 0** — 33 route entries (27 pages + 6 API), 32 static pages generated |
-| CI workflow | `.github/workflows/web-checks.yml` | written and YAML-validated locally; **not yet run on GitHub** (push awaits approval) |
+| CI workflow on GitHub | `.github/workflows/web-checks.yml` | ✅ **success** — push run [43191694935](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191694935), PR run [43191704175](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191704175) |
 
 Build routes: `/`, `/diagnostics/*` (10), `/network`, `/network/quality`, `/network/survey`,
 `/network/troubleshoot`, `/guides`, `/guides/[slug]` (8 generated), `/methodology`, `/results`,

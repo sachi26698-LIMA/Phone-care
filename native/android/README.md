@@ -19,15 +19,15 @@ device. Here is exactly what has been proven.
 | --- | --- | --- |
 | All 10 Kotlin files compile against `android-35/android.jar` | ✅ | `kotlinc 2.4.21`, `-jvm-target 17`, exit 0, 47 classes, no warnings |
 | Engine logic behaves as specified | ✅ | `verification/EngineChecks.kt` → `27 passed, 0 failed` |
-| Manifest + resources + icon link into an APK shell | ✅ | `aapt2 2.20` link → `AndroidManifest.xml`, `resources.arsc`; badging shows package, min/target SDK, permissions, launcher activity, icon |
-| `classes.dex` produced | ❌ | no desktop `d8` available offline |
-| Signed, installable debug APK | ❌ | no `apksigner` / `zipalign`, no `d8` |
-| Gradle build (`assembleDebug`) | ❌ | no Gradle, Android SDK, and `dl.google.com` / `repo.maven.apache.org` / `services.gradle.org` are unreachable here |
-| Installed on a phone | ❌ | requires hardware |
+| Unit tests | ✅ | 4/4 locally (functional JUnit stub); `gradle testDebugUnitTest` green in CI |
+| Manifest + resources + icon link into an APK shell | ✅ | `aapt2 2.20` link, badging shows package, minSdk 26, targetSdk 35, permissions, launcher activity, icon |
+| Gradle build (`assembleDebug`) | ✅ | GitHub Actions run [43191694923](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191694923) |
+| Signed, installable debug APK | ✅ | 935,496 B, SHA-256 `b42e7cbf…2da33ff5`, v2-signed, uploaded as `phonecare-debug-apk` |
+| Installed on a phone | ❌ | requires hardware — see `docs/native/DEVICE-TEST-CHECKLIST.md` |
 
-So: **the code compiles and its logic is tested; the APK has not been built.** Nothing in this
-folder should be described as a shipped app until `./build-local.sh` has produced and installed
-one on your machine.
+The APK is built **in CI**, not on a laptop without an SDK. Download it from the Actions run's
+*Artifacts* section and check its hash against `apk-sha256.txt` (or the run annotation) before
+installing. Each run signs with a fresh debug key, so hashes differ between runs.
 
 Re-run the verified parts at any time:
 
@@ -106,7 +106,8 @@ gradle wrapper --gradle-version 8.9   # once, needs network for the distribution
 
 ## 5. Install on a physical phone
 
-1. Build the APK (above), or receive `app-debug.apk`.
+1. Get the APK: download `phonecare-debug-apk` from the latest green Actions run (fastest), or run
+   `./build-local.sh` locally (produces `app/build/outputs/apk/debug/app-debug.apk`).
 2. On the phone: Settings → About phone → tap *Build number* 7× to unlock Developer options.
 3. Enable *USB debugging*, connect the cable, accept the RSA fingerprint prompt.
 4. `adb install -r app/build/outputs/apk/debug/app-debug.apk`
@@ -148,7 +149,7 @@ so a missing number is explainable rather than blank.
 
 ## 8. Known limitations
 
-1. No signed APK or device run has happened yet (see §1).
+1. No device run has happened yet (see §1). The debug APK is CI-built and v2-signed.
 2. No 5G NSA/SA distinction beyond what `TelephonyManager` reports; `CellIdentityNr` band
    availability is OEM-dependent.
 3. Timing advance is frequently `UNAVAILABLE`; it is reported as null, never guessed.

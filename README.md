@@ -97,8 +97,8 @@ environment variables; the assistant falls back to a deterministic local engine.
 - `docs/testing/` — separate test reports: [`WEB-TEST-REPORT.md`](./docs/testing/WEB-TEST-REPORT.md)
   and [`ANDROID-TEST-REPORT.md`](./docs/testing/ANDROID-TEST-REPORT.md).
 - `native/android/` — separate Kotlin app (radio, Wi-Fi, dual-SIM, survey, report export).
-  **Compiles against `android.jar` API 35 and passes 27 engine checks; the APK has not been built**
-  (no Android SDK/`d8`/`apksigner` in this environment — see `native/android/README.md` §1).
+  **Debug APK built and verified in GitHub Actions** (run 43191694923, 935,496 B, v2-signed,
+  SHA-256 `b42e7cbf…2da33ff5`); engine compiles with 27 desktop checks + 4 unit tests.
 - `docs/native/` — research record, architecture and the network measurement specification.
 - `app/network/*` and `components/network/*` — the network lab UI.
 - `app/guides`, `app/methodology` — statically rendered content with sources.
@@ -166,12 +166,11 @@ Phase 3 added the network lab and the shared report contract:
 - `tsc --noEmit` clean; production build serves 28 routes and 6 API routes.
 
 The native Android app **compiles** (all 10 Kotlin files against `android.jar` API 35, zero
-warnings) and its engine logic passes 27/27 desktop checks; its manifest and resources also link
-with `aapt2`. It is **not built into an APK** here: this environment has no Android SDK, Gradle,
-`d8` or `apksigner`, and Google Maven is unreachable. Radio, Wi-Fi and dual-SIM readings are
-therefore untested on hardware, and the Phase 4 device table is still empty. Run
-`native/android/build-local.sh` on a machine with JDK 17 + Android SDK and follow
-`docs/native/DEVICE-TEST-CHECKLIST.md`.
+warnings), passes 27/27 engine checks and 4/4 unit tests, and **GitHub Actions builds and verifies a
+debug APK** (`android-debug-apk.yml`: unit tests → `assembleDebug` → badging/`classes.dex`/`apksigner`
+v2 assertions → artifact). This sandbox itself has no Android SDK and cannot reach Google Maven, so
+the APK is produced on the runner, not here. Radio, Wi-Fi and dual-SIM readings are still untested on
+hardware — follow `docs/native/DEVICE-TEST-CHECKLIST.md` once the APK is installed.
 
 Physical iOS/Android/Firefox runs are still pending — see
 [`docs/DEVICE_TESTING.md`](./docs/DEVICE_TESTING.md). Numbers vary by machine and load. Full
@@ -180,5 +179,5 @@ method, caveats and the one known transport artifact are in [`AI_BRAIN.md` §7](
 ## Status
 
 Production build verified locally; live Vercel deployment has **not** been performed.
-Network lab verified in the browser build; native Android engine compiles and is unit-verified,
-but no APK exists yet and nothing has run on a physical phone (`native/android/README.md`).
+Network lab verified in the browser build. Android debug APK built and verified in CI; nothing has
+run on a physical phone yet (`native/android/README.md`).

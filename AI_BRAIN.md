@@ -824,20 +824,25 @@ injects the namespace). This is compatible with AGP 8 and harmless.
 | Gradle 8.9 + AGP 8.7.3 | `services.gradle.org` and Google Maven unreachable |
 | Device/emulator | none in the sandbox |
 
-Consequence: the app can be compiled and reasoned about, but **no installable artifact can be
-produced here**, and none was fabricated. `build-local.sh` reproduces the full build on a machine
-with JDK 17 + Android SDK, printing the APK path, size and SHA-256.
+**Resolution.** None of those tools were obtained locally; instead the build moved to GitHub
+Actions (`.github/workflows/android-debug-apk.yml`), which has the SDK. Run 43191694923 completed
+green: unit tests, `assembleDebug`, then `aapt2`/`unzip`/`apksigner` assertions, producing a
+935,496-byte debug APK, v2-signed, SHA-256
+`b42e7cbfce4da5894a420dcbff493bd886961e46dd6191421e36a7fa2da33ff5`, uploaded as the
+`phonecare-debug-apk` artifact. Nothing was fabricated locally, and the local `build-local.sh`
+remains for offline builds.
 
 ### 13.5 Next roadmap
 
-1. Build + install with `native/android/build-local.sh` on a machine with the SDK.
-2. Execute `docs/native/DEVICE-TEST-CHECKLIST.md`: emulator smoke round, then cellular, Wi-Fi,
-   permission matrix, transitions, indoor/outdoor, report interop.
-3. Launcher icon (adaptive vector) and label are in place; only then consider a release keystore.
+1. ✅ Build the APK — done in CI (run 43191694923), artifact `phonecare-debug-apk`.
+2. **Install it on a physical phone** and execute `docs/native/DEVICE-TEST-CHECKLIST.md`: emulator
+   smoke round, then cellular, Wi-Fi, permission matrix, transitions, indoor/outdoor, report interop.
+3. Launcher icon (adaptive vector) and label are in place; a release keystore comes only after device
+   evidence exists.
 4. Feed real device reports back through `POST /api/reports` and compare against the web engines —
    differences between modem-reported and browser-measured values must stay visible, not averaged.
-5. Optional hardening: instrumented tests (`androidTest`) for the permission matrix; `d8 --release`
-   shrinking once a real build exists.
+5. Optional hardening: instrumented tests (`androidTest`) for the permission matrix; R8 + shrinking
+   for a release build.
 
 ---
 
@@ -848,7 +853,13 @@ Both products are first-class; neither is a demo of the other.
 | Platform | Gate | Status |
 | --- | --- | --- |
 | Web | `npx tsc --noEmit`, `npm run test:contract`, `npm run build` | ✅ green locally; `.github/workflows/web-checks.yml` written, unexecuted |
-| Android | `gradle testDebugUnitTest`, `gradle assembleDebug`, APK assertions | 📝 workflow written and YAML-validated; **requires an approved push to run** |
+| Android | `gradle testDebugUnitTest`, `gradle assembleDebug`, APK assertions | ✅ green in CI (push run 43191694923 and PR run 43191704293); APK artifact published |
+
+It took three failed runs to get there, all diagnosed from annotations rather than logs (the log
+storage host is unreachable from this sandbox): (1) `android-actions/setup-android@v3` failed on the
+runner → replaced with SDK discovery + `sdkmanager`; (2) verification failed silently → assertions
+now emit `::error::`/`::notice::` annotations containing the real badging lines; (3) that annotation
+showed the key is `minSdkVersion:'26'`, not `sdkVersion:'26'`.
 
 `.github/workflows/android-debug-apk.yml` does not merely build: it fails the job unless the APK
 exists, the badging matches package / minSdk 26 / targetSdk 35 / launcher activity, `classes.dex`

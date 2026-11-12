@@ -1,6 +1,7 @@
 # Android device test checklist
 
-Use this **after** `native/android/build-local.sh` has produced an APK. Every row is either
+Use this **after** an APK exists: either the CI artifact `phonecare-debug-apk` from a green
+`Android debug APK` run, or a local `native/android/build-local.sh` build. Every row is either
 observed and copied verbatim, or marked `not run`. Do not fill a row from expectation.
 
 Record per session: device model, Android version, build fingerprint, app version
@@ -12,7 +13,8 @@ Record per session: device model, Android version, build fingerprint, app versio
 
 | Item | Check |
 | --- | --- |
-| APK built locally, SHA-256 recorded | ⬜ |
+| APK obtained (CI artifact `phonecare-debug-apk` or a local `build-local.sh` run) | ⬜ |
+| SHA-256 recorded and matched against `apk-sha256.txt` in the artifact | ⬜ |
 | Same APK hash installed (`adb shell pm path` + pull-and-hash) | ⬜ |
 | Test server reachable from the phone's browser (`/api/network/ping`) | ⬜ |
 | Airplane mode **off**, battery saver **off**, VPN **off** | ⬜ |

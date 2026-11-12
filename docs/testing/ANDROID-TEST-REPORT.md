@@ -2,11 +2,13 @@
 
 **Date:** 2026-11-09
 **Commit:** `71bf5b5` (branch `arena/45529a28-phone-care`)
-**Status:** sources compile, engine and unit logic verified locally; **APK not yet built**, CI
-workflow written but **not yet run**, no device run.
+**Status:** the debug APK is **built and verified in CI**; engine and unit logic are verified
+locally; **no physical device run yet**.
 
-No APK hash or "build passed" claim appears in this document until a build has actually produced
-one and its hash is recorded.
+The APK was produced by GitHub Actions (run [43191694923](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191694923)),
+verified there by `aapt2` and `apksigner`, and uploaded as an artifact. It has **not** been installed
+on a phone, and it cannot be downloaded into this sandbox (artifact storage host is unreachable
+here), so its digest below is the one reported by CI, not one I recomputed locally.
 
 ## 1. What was executed here
 
@@ -17,7 +19,10 @@ following was nevertheless executed with tools obtained from npm/PyPI/GitHub:
 | --- | --- | --- |
 | All 10 Kotlin files compile | `kotlinc 2.4.21` + `android-35/android.jar`, `-jvm-target 17` | **exit 0, 0 warnings, 47 classes** |
 | Engine behaviour | `verification/EngineChecks.kt` (desktop JVM) | **27 passed, 0 failed** |
-| Unit tests | `SchemaInvariantTest` executed via a functional JUnit stub runner | **4 passed, 0 failed** |
+| Unit tests (desktop) | `SchemaInvariantTest` executed via a functional JUnit stub runner | **4 passed, 0 failed** |
+| Unit tests (Gradle) | `gradle testDebugUnitTest` on the CI runner | **success**, HTML report artifact uploaded |
+| APK build | `gradle assembleDebug` on the CI runner | **success** — `app-debug.apk`, 935,496 B |
+| APK verification | `aapt2 dump badging`, `unzip -l`, `apksigner verify` on the runner | **success** — all assertions passed |
 | Manifest + resources + adaptive icon | `aapt2 2.20` compile + link | exit 0; badging confirms package, minSdk 26, targetSdk 35, permissions, launcher activity, icon |
 | Web contract still consistent with Kotlin types | `npm run test:contract` | 46 passed, 0 failed |
 
@@ -66,28 +71,47 @@ floor; 20/200/400 unstable); score withheld when `scored=false`, > 80 when valid
 They will run for real as `gradle testDebugUnitTest` in CI; the local run used a functional
 stand-in for JUnit's `Assert` because `junit.jar` cannot be downloaded here.
 
-## 4. CI build — configured, not yet run
+## 4. CI build — executed successfully
 
-`.github/workflows/android-debug-apk.yml`:
+Workflow: `.github/workflows/android-debug-apk.yml`. Latest run on `arena/45529a28-phone-care`:
 
-1. checkout → Temurin JDK 17 → `android-actions/setup-android@v3`;
-2. install `platforms;android-35`, `build-tools;35.0.0`, `platform-tools`;
-3. `gradle/actions/setup-gradle@v4` with Gradle 8.9;
-4. `gradle testDebugUnitTest` → `gradle assembleDebug`;
-5. verification that fails the job unless all of these hold:
-   - APK exists; SHA-256 printed;
-   - badging shows the expected package, `sdkVersion 26`, `targetSdkVersion 35`, the launcher activity;
-   - `classes.dex` and `resources.arsc` are inside the archive;
-   - `apksigner verify` reports **Verified using v2 scheme**;
-6. uploads `phonecare-debug-apk` (APK + sha256 + badging + contents + signature) and the unit-test
-   HTML report as artifacts (14-day retention). Nothing is published to releases.
+- push run: [43191694923](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191694923) — **success**
+- pull-request run: [43191704293](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191704293) — **success**
+- every step green: checkout → JDK 17 → locate SDK → install `platforms;android-35` + `build-tools;35.0.0` → Gradle 8.9 → **unit tests** → **assembleDebug** → **verify** → upload
 
-The workflow only runs once it is pushed. Pushing is explicitly approval-gated, so the current
-state is: **ready, unexecuted**.
+### Artifact
+
+| Field | Value |
+| --- | --- |
+| Artifact | `phonecare-debug-apk` (artifact id 13930508447, 929,256 B zip, expires in 14 days) |
+| Contains | `app-debug.apk`, `apk-sha256.txt`, `apk-badging.txt`, `apk-contents.txt`, `apk-signature.txt` |
+| APK | `app-debug.apk`, **935,496 bytes** |
+| SHA-256 | `b42e7cbfce4da5894a420dcbff493bd886961e46dd6191421e36a7fa2da33ff5` |
+| Launcher | `app.phonecare.diagnostics.MainActivity` |
+| minSdk / targetSdk | 26 / 35 |
+| Signature | verified with APK Signature Scheme **v2** (debug key) |
+
+**Download:** Actions run → *Artifacts* → `phonecare-debug-apk`. Compare the extracted APK's
+`sha256sum` with the value above before installing.
+
+Caveat: the debug keystore is generated on the runner, so a later run produces a *different*
+signature and therefore a different SHA-256. This digest identifies this artifact only.
+
+### Why this failed three times before passing
+
+| Run | Failure | Fix |
+| --- | --- | --- |
+| 43190383805 | `android-actions/setup-android@v3` step failed | dropped the action; locate the preinstalled SDK and use `sdkmanager`, with a Google cmdline-tools fallback |
+| 43190571657 | APK built, verification failed with no readable log | assertions rewritten to fail with `::error::` annotations carrying the real badging output |
+| 43190944392 | annotation revealed the key is `minSdkVersion:'26'` | pattern corrected (the old one used a lowercase `s`) |
+
+Logs themselves are not fetchable from this sandbox (Actions log storage host is unreachable), so the
+workflow was made self-describing: every verification failure emits an annotation with the offending
+line, and pass/fail is readable through the API.
 
 ## 5. Physical device testing
 
-Not started — requires the APK. The full protocol is `docs/native/DEVICE-TEST-CHECKLIST.md`
+Not started. The APK now exists, so this is the first blocking item. The full protocol is `docs/native/DEVICE-TEST-CHECKLIST.md`
 (emulator smoke round, cellular incl. 4G↔5G transitions and dual SIM, Wi-Fi bands and gateway/DNS,
 permission matrix, connectivity transitions, indoor/outdoor, repeatability, report interop).
 Emulator results may never be quoted as radio evidence.
