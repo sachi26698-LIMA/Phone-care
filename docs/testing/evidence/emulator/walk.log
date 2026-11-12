@@ -1,6 +1,6 @@
 ++ date -u +%FT%TZ
-+ echo '== provisioning 2026-11-12T14:12:15Z'
-== provisioning 2026-11-12T14:12:15Z
++ echo '== provisioning 2026-11-12T14:30:35Z'
+== provisioning 2026-11-12T14:30:35Z
 + echo SDK=/usr/local/lib/android/sdk
 SDK=/usr/local/lib/android/sdk
 + adb version
@@ -19,11 +19,35 @@ Loading package information...                                                  
 + timeout 120 avdmanager create avd -n walk -k 'system-images;android-34;google_apis;x86_64' -d pixel_5 --force
 Loading local repository...                                                     [=========                              ] 25% Loading local repository...       [=========                              ] 25% Fetch remote repository...        [=======================================] 100% Fetch remote repository...       
 Auto-selecting single ABI x86_64
++ echo '--- avdmanager list ---'
+--- avdmanager list ---
++ avdmanager list avd
++ head -12
+Available Android Virtual Devices:
+    Name: walk
+  Device: pixel_5 (Google)
+    Path: /home/runner/.config/.android/avd/walk.avd
+  Target: Google APIs (Google Inc.)
+          Based on: Android 14.0 ("UpsideDownCake") Tag/ABI: google_apis/x86_64
+  Sdcard: 512 MB
+++ find /home/runner /root/.android -maxdepth 5 -name walk.ini
+++ head -1
++ AVD_INI=/home/runner/.config/.android/avd/walk.ini
++ echo 'avd ini: /home/runner/.config/.android/avd/walk.ini'
+avd ini: /home/runner/.config/.android/avd/walk.ini
++ '[' -n /home/runner/.config/.android/avd/walk.ini ']'
+++ dirname /home/runner/.config/.android/avd/walk.ini
++ export ANDROID_AVD_HOME=/home/runner/.config/.android/avd
++ ANDROID_AVD_HOME=/home/runner/.config/.android/avd
++ echo ANDROID_AVD_HOME=/home/runner/.config/.android/avd
+ANDROID_AVD_HOME=/home/runner/.config/.android/avd
++ emulator -list-avds
+walk
 + adb start-server
 * daemon not running; starting now at tcp:5037
 * daemon started successfully
-+ echo 'emulator pid 2380'
-emulator pid 2380
++ echo 'emulator pid 2649'
+emulator pid 2649
 + nohup /usr/local/lib/android/sdk/emulator/emulator -avd walk -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -no-metrics -camera-back none -camera-front none
 ++ seq 1 60
 + for i in $(seq 1 60)
@@ -31,10 +55,6 @@ emulator pid 2380
 + grep -q 'emulator.*device'
 + sleep 5
 + for i in $(seq 1 60)
-+ grep -q 'emulator.*device'
-+ adb devices
-+ sleep 5
-+ for i in $(seq 1 60)
 + adb devices
 + grep -q 'emulator.*device'
 + sleep 5
@@ -45,231 +65,12 @@ emulator pid 2380
 + for i in $(seq 1 60)
 + adb devices
 + grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ grep -q 'emulator.*device'
-+ adb devices
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ for i in $(seq 1 60)
-+ adb devices
-+ grep -q 'emulator.*device'
-+ sleep 5
-+ echo 'devices after ~300s:'
-devices after ~300s:
++ break
++ echo 'devices after ~20s:'
+devices after ~20s:
 + adb devices
 List of devices attached
+emulator-5554	device
 
 + booted=0
 ++ seq 1 120
@@ -299,590 +100,51 @@ List of devices attached
 + '[' '' = 1 ']'
 + sleep 5
 + for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
 ++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
 ++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ for i in $(seq 1 120)
-++ adb shell getprop sys.boot_completed
-++ tr -d '\r'
-+ '[' '' = 1 ']'
-+ sleep 5
-+ echo 'boot_completed=0 after ~600s'
-boot_completed=0 after ~600s
++ '[' 1 = 1 ']'
++ booted=1
++ break
++ echo 'boot_completed=1 after ~30s'
+boot_completed=1 after ~30s
 + adb shell wm dismiss-keyguard
-adb: no devices/emulators found
-+ true
 + echo '== emulator log tail'
 == emulator log tail
 + tail -30 /tmp/emulator.log
-INFO         | Android emulator version 37.2.13.0 (build_id 16740729) (CL:N/A)
-INFO         | Graphics backend: gfxstream
-ERROR        | Unknown AVD name [walk], use -list-avds to see valid list.
-ERROR        | ANDROID_AVD_HOME is defined but there is no file walk.ini in $ANDROID_AVD_HOME
-ERROR        | (Note: Directories are searched in the order $ANDROID_AVD_HOME, $ANDROID_SDK_HOME/avd and $HOME/.android/avd)
+INFO         |   androidboot.qemu.hwcodec.avcdec=2
+INFO         |   androidboot.qemu.hwcodec.hevcdec=2
+INFO         |   androidboot.qemu.hwcodec.vpxdec=2
+INFO         |   androidboot.qemu.settings.system.screen_off_timeout=2147483647
+INFO         |   androidboot.qemu.skin=1080x2340
+INFO         |   androidboot.qemu.virtiowifi=1
+INFO         |   androidboot.qemu.vsync=60
+INFO         |   androidboot.serialno=EMULATOR37X2X13X0
+INFO         |   androidboot.vbmeta.digest=451e57ed688ff746d2c636d52169ade253e2bc5bb30a5c3ff23679ca15d3bcd3
+INFO         |   androidboot.vbmeta.hash_alg=sha256
+INFO         |   androidboot.vbmeta.size=6656
+INFO         |   androidboot.veritymode=enforcing
+WARNING: cannnot unmap ptr 0x7f776d001000 as it is in the protected range from 0x7f76cd000000 to 0x7f776d200000
+INFO         | Monitoring duration of emulator setup.
+WARNING      | The emulator now requires a signed jwt token for gRPC access! Use the -grpc flag if you really want an open unprotected grpc port
+INFO         | Using security allow list from: /usr/local/lib/android/sdk/emulator/lib/emulator_access.json
+INFO         | The active JSON Web Key Sets can be found here: /run/user/1001/avd/running/2649/jwks/83d86323-7e5a-4b2c-a16d-b43b6cf006c1/active.jwk
+INFO         | Scanning /run/user/1001/avd/running/2649/jwks/83d86323-7e5a-4b2c-a16d-b43b6cf006c1 for jwk keys.
+INFO         | Started GRPC server at 127.0.0.1:8554, security: Local, auth: +token
+INFO         | Advertising in: /run/user/1001/avd/running/pid_2649.ini
+INFO         | Activated packet streamer for bluetooth emulation
+INFO         | Successfully initialized netsim WiFi
+INFO         | Setting display: 0 configuration to: 1080x2340, dpi: 440x440 
+INFO         | setDisplayActiveConfig: id:0, 1080x2340
+INFO         | emulatorSetupEnvironment: Environment scene is not required
+USER_INFO    | Emulator is performing a full startup. This may take upto two minutes, or more.
+WARNING      | Failed to process .ini file /home/runner/.android/emu-update-last-check.ini for reading.
+WARNING      | Failed to process .ini file /home/runner/.android/emu-update-last-check.ini for reading.
+INFO         | Boot completed in 38408 ms
+INFO         | Increasing screen off timeout, logcat buffer size to 2M.
+cwd=/home/runner/work/Phone-care/Phone-care python=3.12.3 apk=app/build/outputs/apk/debug/app-debug.apk
+adb=Android Debug Bridge version 1.0.41
+[PASS] Emulator finished booting — 1
+[PASS] Install APK — 1052578 bytes, runtime permissions granted
+[PASS] Launch MainActivity — Complete
+[FAIL] Dashboard renders — no accessibility node after launch
+::error title=UI walk::Dashboard renders — no accessibility node after launch
