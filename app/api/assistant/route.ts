@@ -21,6 +21,8 @@ function isEnabled() {
 }
 
 function clientKey(request: Request) {
+  // On Vercel the platform overwrites these headers; treat them as advisory
+  // only and never as identity.
   const forwarded = request.headers.get("x-forwarded-for");
   return forwarded?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "local";
 }
@@ -48,6 +50,10 @@ export async function POST(request: Request) {
 
   const key = clientKey(request);
   const now = Date.now();
+  // Keep the in-memory window table bounded on long-lived instances.
+  if (hits.size > 500) {
+    for (const [k, v] of hits) if (v.resetAt <= now) hits.delete(k);
+  }
   const entry = hits.get(key);
   if (entry && entry.resetAt > now && entry.count >= MAX_REQUESTS) {
     return NextResponse.json(
