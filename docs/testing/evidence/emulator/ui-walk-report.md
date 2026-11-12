@@ -1,7 +1,7 @@
 # Android UI walk — emulator run
 
-- Steps: **58** · pass 55 · fail 1 · notes 2 · skipped 0
-- Screenshots: **31** in this folder
+- Steps: **59** · pass 56 · fail 1 · notes 2 · skipped 0
+- Screenshots: **32** in this folder
 - Device: Device: sdk_gphone64_x86_64 · Android 14 (API 34) · emulator, not physical hardware
 
 > Produced by `native/android/ui-walk.py` on a GitHub Actions emulator. This is emulator
@@ -10,7 +10,7 @@
 | Result | Step | Detail |
 | --- | --- | --- |
 | ✅ | Emulator finished booting | 1 |
-| ✅ | Install APK | 1055062 bytes, runtime permissions granted |
+| ✅ | Install APK | 1056090 bytes, runtime permissions granted |
 | ✅ | Launch MainActivity | Complete |
 | ✅ | Dashboard renders | app bar title and content present |
 | ✅ | Tab Home → Dashboard |  |
@@ -56,9 +56,10 @@
 | ✅ | Privacy & permissions back returns to More |  |
 | ✅ | Permission request shows the system prompt | Allow PhoneCare Diagnostics to access this device’s location? |
 | ✅ | Permissions granted from the prompts | 2 system prompt(s) accepted |
-| ✅ | Cellular read returns values or a stated reason | Modem-reported values. Unavailable stays unavailable. |
+| ✅ | Cellular read returns values or a stated reason | measured |
 | ✅ | Guide detail opens | battery-health-decline |
-| ❌ | Guide search field present | no EditText on the Guides screen |
+| ✅ | Guide back returns to the list |  |
+| ❌ | Guide search filters results | field text present=True, matching guide present=False |
 | ℹ️ | Permission dialog shown | no request was needed on this emulator image |
 | ✅ | Full check reports progress or results | on-screen measurement text present |
 | ✅ | Export opens the system share sheet | No recommended people to share with |
@@ -97,6 +98,7 @@
 - `25-permission-dialog.png`
 - `26-cellular-read.png`
 - `24-guide-detail.png`
+- `23-guides-search.png`
 - `26-full-check.png`
 - `27-export-sheet.png`
 - `28-system-dark-mode.png`

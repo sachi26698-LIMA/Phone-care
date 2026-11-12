@@ -8,7 +8,7 @@
     {
       "status": "pass",
       "name": "Install APK",
-      "detail": "1055062 bytes, runtime permissions granted"
+      "detail": "1056090 bytes, runtime permissions granted"
     },
     {
       "status": "pass",
@@ -238,7 +238,7 @@
     {
       "status": "pass",
       "name": "Cellular read returns values or a stated reason",
-      "detail": "Modem-reported values. Unavailable stays unavailable."
+      "detail": "measured"
     },
     {
       "status": "pass",
@@ -246,9 +246,14 @@
       "detail": "battery-health-decline"
     },
     {
+      "status": "pass",
+      "name": "Guide back returns to the list",
+      "detail": ""
+    },
+    {
       "status": "fail",
-      "name": "Guide search field present",
-      "detail": "no EditText on the Guides screen"
+      "name": "Guide search filters results",
+      "detail": "field text present=True, matching guide present=False"
     },
     {
       "status": "soft",
@@ -319,6 +324,7 @@
     "25-permission-dialog.png",
     "26-cellular-read.png",
     "24-guide-detail.png",
+    "23-guides-search.png",
     "26-full-check.png",
     "27-export-sheet.png",
     "28-system-dark-mode.png",
@@ -326,6 +332,6 @@
   ],
   "notes": [
     "Device: sdk_gphone64_x86_64 \u00b7 Android 14 (API 34) \u00b7 emulator, not physical hardware",
-    "Foreground window after launch: mCurrentFocus=Window{3d28f93 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
+    "Foreground window after launch: mCurrentFocus=Window{ceb53fe u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
   ]
 }
