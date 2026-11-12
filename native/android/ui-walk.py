@@ -417,7 +417,7 @@ def main() -> int:
         if tap("Read cellular now", above_nav=True):
             time.sleep(8.0)
             texts = [t for t, *_ in nodes(dump())]
-            numbers = [t for t in texts if re.search(r"-?\d+(\.\d+)?\s*dBm|dB\b|RSRP|SINR|MHz", t, re.I)]
+            numbers = [t for t in texts if re.search(r"\bmeasured\b|-?\d+(\.\d+)?\s*dBm|RSRP|SINR|MHz", t, re.I)]
             reason = [t for t in texts if re.search(r"not available|unavailable|requires|denied", t, re.I)]
             ok = bool(numbers) or bool(reason)
             record("pass" if ok else "fail", "Cellular read returns values or a stated reason",
@@ -435,16 +435,17 @@ def main() -> int:
     wait_for("More", 10)
     if tap("Guides", scroll=4, above_nav=True):
         wait_for("Guides", 12)
-        if tap("Battery health is dropping", scroll=3, above_nav=True):
-            shown = wait_for("Guide", 12)
+        if tap("Read guide", scroll=3, above_nav=True):
+            shown = wait_for_header("Guide", 12)
             record("pass" if shown else "fail", "Guide detail opens", "battery-health-decline")
             if shown:
                 time.sleep(1.0)
                 shot("24-guide-detail")
             back()
-            wait_for("Guides", 10)
+            returned = wait_for_header("Guides", 12)
+            record("pass" if returned else "fail", "Guide back returns to the list", "")
         else:
-            record("soft", "Guide detail opens", "first guide row not found by title")
+            record("fail", "Guide detail opens", "no Read guide button on the Guides list")
     else:
         record("fail", "Guides opens from More", "row missing")
 

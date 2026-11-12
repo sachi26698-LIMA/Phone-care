@@ -106,6 +106,13 @@ fun guidesScreen(host: Host): View {
         results.forEach { guide ->
             listHolder.addView(
                 Ui.card(context) {
+                    // The website's guide cards are links; a card that only responds on its button
+                    // is a dead target on a phone.
+                    isClickable = true
+                    setOnClickListener {
+                        host.state.selectedGuideSlug = guide.slug
+                        host.navigate(Screen.GUIDE_DETAIL)
+                    }
                     val header = Layout.row(context)
                     header.addView(Ui.text(context, guide.title, Type.BODY, Tokens.TEXT, bold = true).apply {
                         layoutParams = Layout.weight(1f)
