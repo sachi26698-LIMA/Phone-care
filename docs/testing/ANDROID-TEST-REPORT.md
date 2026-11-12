@@ -114,6 +114,18 @@ Workflow: `.github/workflows/android-debug-apk.yml`. Latest run on `arena/45529a
 - pull-request run: [43191704293](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191704293) — **success**
 - every step green: checkout → JDK 17 → locate SDK → install `platforms;android-35` + `build-tools;35.0.0` → Gradle 8.9 → **unit tests** → **assembleDebug** → **verify** → upload
 
+### Phase 6 parity build
+
+Run [43201262739](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43201262739) — **success**
+
+| Field | Value |
+| --- | --- |
+| Unit tests | `tests=5 failures=0 skipped=0` |
+| APK | **1,052,578 bytes** (24 screens + 8 guides added ~117 KB) |
+| SHA-256 | `580bd2704b6433ebf668f47aec473e2b7ebdce0cb817f402f6e6f47792fbcb36` |
+| Screens | 24 |
+| Signature | v2, verified on the runner |
+
 ### Latest build with the hardening fixes
 
 Run [43197869825](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43197869825) — **success**

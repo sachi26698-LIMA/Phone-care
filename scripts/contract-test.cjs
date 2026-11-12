@@ -9,18 +9,18 @@
  */
 
 const path = require("node:path");
-const { validateReport, normalizeReport } = require(path.join(__dirname, "..", ".contract-build", "schema.js"));
-const { summariseProbes } = require(path.join(__dirname, "..", ".contract-build", "quality.js"));
-const { compareSnapshots } = require(path.join(__dirname, "..", ".contract-build", "compare.js"));
-const { triage } = require(path.join(__dirname, "..", ".contract-build", "triage.js"));
+const { validateReport, normalizeReport } = require(path.join(__dirname, "..", ".contract-build", "diagnostic", "schema.js"));
+const { summariseProbes } = require(path.join(__dirname, "..", ".contract-build", "diagnostic", "quality.js"));
+const { compareSnapshots } = require(path.join(__dirname, "..", ".contract-build", "diagnostic", "compare.js"));
+const { triage } = require(path.join(__dirname, "..", ".contract-build", "diagnostic", "triage.js"));
 const {
   sampleFromProbes,
   summarizeRoom,
   classifyRsrp,
   classifyRssi,
   makeRoom,
-} = require(path.join(__dirname, "..", ".contract-build", "survey.js"));
-const { buildWebReport } = require(path.join(__dirname, "..", ".contract-build", "report.js"));
+} = require(path.join(__dirname, "..", ".contract-build", "diagnostic", "survey.js"));
+const { buildWebReport } = require(path.join(__dirname, "..", ".contract-build", "diagnostic", "report.js"));
 
 let passed = 0;
 const failures = [];
