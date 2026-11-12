@@ -76,9 +76,9 @@ def dump() -> str:
     return ""
 
 
-def nodes(xml: str) -> list[tuple[str, int, int, int]]:
-    """(text, center_x, center_y, bottom_y) for every labelled node."""
-    out: list[tuple[str, int, int, int]] = []
+def nodes(xml: str) -> list[tuple[str, int, int, int, int]]:
+    """(text, center_x, center_y, bottom_y, top_y) for every labelled node."""
+    out: list[tuple[str, int, int, int, int]] = []
     try:
         root = ET.fromstring(xml)
     except ET.ParseError:
@@ -88,8 +88,18 @@ def nodes(xml: str) -> list[tuple[str, int, int, int]]:
         m = re.match(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", node.get("bounds") or "")
         if text and m:
             x1, y1, x2, y2 = (int(v) for v in m.groups())
-            out.append((text, (x1 + x2) // 2, (y1 + y2) // 2, y2))
+            out.append((text, (x1 + x2) // 2, (y1 + y2) // 2, y2, y1))
     return out
+
+
+def header_is(title: str, xml: str | None = None) -> bool:
+    """True when the app bar itself shows this title.
+
+    Matching anywhere on the screen is not proof a screen opened: the hub you came from lists the
+    same words as row labels, which made three earlier "screen opened" checks lie.
+    """
+    xml = xml if xml is not None else dump()
+    return any(t == title and top < 520 for t, _cx, _cy, _b, top in nodes(xml))
 
 
 def has_text(text: str, xml: str | None = None) -> bool:
@@ -97,10 +107,15 @@ def has_text(text: str, xml: str | None = None) -> bool:
     return any(text.lower() in t.lower() for t, *_ in nodes(xml))
 
 
-def find(text: str, *, scroll: int = 0, bottom_most: bool = False) -> tuple[int, int] | None:
+def find(text: str, *, scroll: int = 0, bottom_most: bool = False,
+         above_nav: bool = False) -> tuple[int, int] | None:
     """Locate a tappable node by text, optionally scrolling the page to reach it."""
     for attempt in range(scroll + 1):
-        matches = [n for n in nodes(dump()) if text.lower() in n[0].lower()]
+        height = screen_size()[1]
+        matches = [
+            n for n in nodes(dump())
+            if text.lower() in n[0].lower() and (not above_nav or n[3] < height - 200)
+        ]
         if matches:
             chosen = max(matches, key=lambda n: n[3]) if bottom_most else matches[0]
             return chosen[1], chosen[2]
@@ -118,8 +133,8 @@ def screen_size() -> tuple[int, int]:
     return (int(m.group(1)), int(m.group(2))) if m else SCREEN
 
 
-def tap(text: str, *, scroll: int = 0, bottom_most: bool = False) -> bool:
-    spot = find(text, scroll=scroll, bottom_most=bottom_most)
+def tap(text: str, *, scroll: int = 0, bottom_most: bool = False, above_nav: bool = False) -> bool:
+    spot = find(text, scroll=scroll, bottom_most=bottom_most, above_nav=above_nav)
     if not spot:
         return False
     adb("shell", "input", "tap", str(spot[0]), str(spot[1]))
@@ -130,6 +145,20 @@ def tap(text: str, *, scroll: int = 0, bottom_most: bool = False) -> bool:
 def back() -> None:
     adb("shell", "input", "keyevent", "KEYCODE_BACK")
     time.sleep(1.0)
+    rc, ime = adb("shell", "dumpsys", "input_method")
+    if "mInputShown=true" in ime:
+        # The first BACK closed the keyboard, not the screen; press again.
+        adb("shell", "input", "keyevent", "KEYCODE_BACK")
+        time.sleep(1.0)
+
+
+def wait_for_header(title: str, timeout: float = 15.0) -> bool:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if header_is(title):
+            return True
+        time.sleep(0.8)
+    return False
 
 
 def wait_for(text: str, timeout: float = 12.0) -> bool:
@@ -274,7 +303,7 @@ def main() -> int:
         if not ok:
             record("fail", f"Tab {label}", "label not found in the bottom navigation")
             continue
-        shown = wait_for(title, 12)
+        shown = wait_for_header(title, 12) if title != "Dashboard" else wait_for("Run full check", 12)
         record("pass" if shown else "fail", f"Tab {label} → {title}",
                "" if shown else "expected title not found on screen")
         if shown:
@@ -289,17 +318,17 @@ def main() -> int:
         for row, expected in rows:
             n += 1
             prefix = f"{n:02d}"
-            if not tap(row, scroll=4):
-                record("fail", f"{row} opens", "row not found on the hub screen")
+            if not tap(row, scroll=5, above_nav=True):
+                record("fail", f"{row} opens", "row never scrolled into view above the bottom nav")
                 continue
-            shown = wait_for(expected, 15)
+            shown = wait_for_header(expected, 15)
             record("pass" if shown else "fail", f"{row} opens",
                    "" if shown else f"header {expected!r} not found")
             if shown:
                 time.sleep(1.2)
                 shot(f"{prefix}-{slug(row)}")
             back()
-            returned = wait_for(hub_title, 12)
+            returned = wait_for_header(hub_title, 12)
             record("pass" if returned else "fail", f"{row} back returns to {hub_title}",
                    "" if returned else "hub title missing after back")
 
