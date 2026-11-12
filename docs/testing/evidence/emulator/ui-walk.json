@@ -8,7 +8,7 @@
     {
       "status": "pass",
       "name": "Install APK",
-      "detail": "1054826 bytes, runtime permissions granted"
+      "detail": "1055034 bytes, runtime permissions granted"
     },
     {
       "status": "pass",
@@ -232,8 +232,8 @@
     },
     {
       "status": "fail",
-      "name": "Guide search filters results",
-      "detail": "no matching result after typing"
+      "name": "Guide search field present",
+      "detail": "no EditText on the Guides screen"
     },
     {
       "status": "soft",
@@ -302,7 +302,6 @@
     "19-settings.png",
     "20-privacy-permissions.png",
     "24-guide-detail.png",
-    "23-guides-search.png",
     "26-full-check.png",
     "27-export-sheet.png",
     "28-system-dark-mode.png",
@@ -310,6 +309,6 @@
   ],
   "notes": [
     "Device: sdk_gphone64_x86_64 \u00b7 Android 14 (API 34) \u00b7 emulator, not physical hardware",
-    "Foreground window after launch: mCurrentFocus=Window{b314c16 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
+    "Foreground window after launch: mCurrentFocus=Window{ec13b08 u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
   ]
 }

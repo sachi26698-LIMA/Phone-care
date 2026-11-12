@@ -1,7 +1,7 @@
 # Android UI walk — emulator run
 
 - Steps: **55** · pass 52 · fail 1 · notes 2 · skipped 0
-- Screenshots: **30** in this folder
+- Screenshots: **29** in this folder
 - Device: Device: sdk_gphone64_x86_64 · Android 14 (API 34) · emulator, not physical hardware
 
 > Produced by `native/android/ui-walk.py` on a GitHub Actions emulator. This is emulator
@@ -10,7 +10,7 @@
 | Result | Step | Detail |
 | --- | --- | --- |
 | ✅ | Emulator finished booting | 1 |
-| ✅ | Install APK | 1054826 bytes, runtime permissions granted |
+| ✅ | Install APK | 1055034 bytes, runtime permissions granted |
 | ✅ | Launch MainActivity | Complete |
 | ✅ | Dashboard renders | app bar title and content present |
 | ✅ | Tab Home → Dashboard |  |
@@ -55,7 +55,7 @@
 | ✅ | Privacy & permissions opens |  |
 | ✅ | Privacy & permissions back returns to More |  |
 | ✅ | Guide detail opens | battery-health-decline |
-| ❌ | Guide search filters results | no matching result after typing |
+| ❌ | Guide search field present | no EditText on the Guides screen |
 | ℹ️ | Permission dialog shown | no request was needed on this emulator image |
 | ✅ | Full check reports progress or results | on-screen measurement text present |
 | ✅ | Export opens the system share sheet | No recommended people to share with |
@@ -92,7 +92,6 @@
 - `19-settings.png`
 - `20-privacy-permissions.png`
 - `24-guide-detail.png`
-- `23-guides-search.png`
 - `26-full-check.png`
 - `27-export-sheet.png`
 - `28-system-dark-mode.png`
