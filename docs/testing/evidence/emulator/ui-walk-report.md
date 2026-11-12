@@ -1,6 +1,6 @@
 # Android UI walk — emulator run
 
-- Steps: **59** · pass 56 · fail 1 · notes 2 · skipped 0
+- Steps: **59** · pass 57 · fail 0 · notes 2 · skipped 0
 - Screenshots: **32** in this folder
 - Device: Device: sdk_gphone64_x86_64 · Android 14 (API 34) · emulator, not physical hardware
 
@@ -10,7 +10,7 @@
 | Result | Step | Detail |
 | --- | --- | --- |
 | ✅ | Emulator finished booting | 1 |
-| ✅ | Install APK | 1056090 bytes, runtime permissions granted |
+| ✅ | Install APK | 1056206 bytes, runtime permissions granted |
 | ✅ | Launch MainActivity | Complete |
 | ✅ | Dashboard renders | app bar title and content present |
 | ✅ | Tab Home → Dashboard |  |
@@ -59,7 +59,7 @@
 | ✅ | Cellular read returns values or a stated reason | measured |
 | ✅ | Guide detail opens | battery-health-decline |
 | ✅ | Guide back returns to the list |  |
-| ❌ | Guide search filters results | field=True no-match-shown=False visible=['‹ Back', 'PC', 'PhoneCare', 'native', 'Cellular complete.', 'Guides', 'The same eight guides as the website, generated from one source.', 'wifi'] |
+| ✅ | Guide search filters results | field accepted 'wifi'; Wi-Fi guide listed: 'Diagnosing slow Wi-Fi and laggy connecti' |
 | ℹ️ | Permission dialog shown | no request was needed on this emulator image |
 | ✅ | Full check reports progress or results | on-screen measurement text present |
 | ✅ | Export opens the system share sheet | No recommended people to share with |
