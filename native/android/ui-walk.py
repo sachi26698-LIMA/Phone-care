@@ -109,21 +109,28 @@ def has_text(text: str, xml: str | None = None) -> bool:
 
 def find(text: str, *, scroll: int = 0, bottom_most: bool = False,
          above_nav: bool = False) -> tuple[int, int] | None:
-    """Locate a tappable node by text, optionally scrolling the page to reach it."""
+    """Locate a tappable node by text, optionally scrolling the page to reach it.
+
+    With `above_nav`, only nodes that sit clear of the bottom navigation are accepted, and the
+    returned point is near the node's top edge. Tapping the centre of a row that is half hidden
+    under the nav bar lands on a tab instead — which is what silently kept the app on the hub
+    while the walk believed it had navigated.
+    """
     for attempt in range(scroll + 1):
-        height = screen_size()[1]
+        w, h = screen_size()
         matches = [
             n for n in nodes(dump())
-            if text.lower() in n[0].lower() and (not above_nav or n[3] < height - 200)
+            if text.lower() in n[0].lower()
+            and (not above_nav or (n[4] > 340 and n[3] < h - 140))
         ]
         if matches:
             chosen = max(matches, key=lambda n: n[3]) if bottom_most else matches[0]
-            return chosen[1], chosen[2]
+            tap_y = chosen[4] + 24 if above_nav else chosen[2]
+            return chosen[1], tap_y
         if attempt < scroll:
-            w, h = screen_size()
-            adb("shell", "input", "swipe", str(w // 2), str(int(h * 0.75)),
-                str(w // 2), str(int(h * 0.35)), "300")
-            time.sleep(0.6)
+            adb("shell", "input", "swipe", str(w // 2), str(int(h * 0.62)),
+                str(w // 2), str(int(h * 0.32)), "300")
+            time.sleep(0.8)
     return None
 
 
@@ -318,10 +325,17 @@ def main() -> int:
         for row, expected in rows:
             n += 1
             prefix = f"{n:02d}"
-            if not tap(row, scroll=5, above_nav=True):
+            tapped = tap(row, scroll=5, above_nav=True)
+            shown = wait_for_header(expected, 8) if tapped else False
+            if tapped and not shown:  # one retry: the row may have shifted while settling
+                adb("shell", "input", "swipe", str(screen_size()[0] // 2), str(int(screen_size()[1] * 0.6)),
+                    str(screen_size()[0] // 2), str(screen_size()[1] // 2), "250")
+                time.sleep(0.8)
+                if tap(row, above_nav=True):
+                    shown = wait_for_header(expected, 12)
+            if not tapped and not shown:
                 record("fail", f"{row} opens", "row never scrolled into view above the bottom nav")
                 continue
-            shown = wait_for_header(expected, 15)
             record("pass" if shown else "fail", f"{row} opens",
                    "" if shown else f"header {expected!r} not found")
             if shown:
@@ -335,9 +349,9 @@ def main() -> int:
     # --- guide detail ----------------------------------------------------------------
     tap("More", bottom_most=True)
     wait_for("More", 10)
-    if tap("Guides", scroll=3):
+    if tap("Guides", scroll=4, above_nav=True):
         wait_for("Guides", 12)
-        if tap("Battery health is dropping", scroll=2):
+        if tap("Battery health is dropping", scroll=3, above_nav=True):
             shown = wait_for("Guide", 12)
             record("pass" if shown else "fail", "Guide detail opens", "battery-health-decline")
             if shown:
@@ -367,7 +381,9 @@ def main() -> int:
     # --- permission flow + full check ------------------------------------------------
     tap("Home", bottom_most=True)
     wait_for("Dashboard", 12)
-    if tap("Run full check"):
+    if not wait_for("Full check", 12):
+        record("fail", "Dashboard content present", "no 'Full check' card after returning Home")
+    if tap("Run full check", above_nav=True):
         time.sleep(3.0)
         xml = dump()
         dialog = [t for t, *_ in nodes(xml) if re.search(r"allow|while using|deny|permission", t, re.I)]
@@ -409,7 +425,7 @@ def main() -> int:
     # --- settings save ---------------------------------------------------------------
     tap("More", bottom_most=True)
     wait_for("More", 10)
-    if tap("Settings", scroll=3):
+    if tap("Settings", scroll=4, above_nav=True):
         wait_for("Settings", 12)
         if tap("Save"):
             time.sleep(1.5)
