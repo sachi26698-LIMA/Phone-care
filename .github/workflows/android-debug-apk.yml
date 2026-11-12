@@ -318,13 +318,23 @@ jobs:
           git add -f docs/testing/evidence/emulator || true
           if git diff --cached --quiet; then
             echo "no evidence changes to publish"
-          else
-            git commit -m "ui validation: emulator run evidence [skip ci]"
-            # Another job may have committed while this one was booting an emulator.
-            for attempt in 1 2 3; do
-              if git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push; then
-                echo "evidence pushed on attempt $attempt"; break
-              fi
-              sleep 5
-            done
+            exit 0
           fi
+          git commit -m "ui validation: emulator run evidence [skip ci]"
+          for attempt in 1 2 3 4 5; do
+            # Another job may commit while this one is booting an emulator; rebase and retry, and
+            # fail loudly rather than reporting success after silently losing the evidence.
+            git fetch origin "${GITHUB_REF_NAME}"
+            if git rebase --autostash "origin/${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "evidence pushed on attempt $attempt"
+              local_sha="$(git rev-parse HEAD)"
+              remote_sha="$(git ls-remote origin "refs/heads/${GITHUB_REF_NAME}" | cut -d' ' -f1)"
+              if [ "$local_sha" = "$remote_sha" ]; then
+                echo "::notice title=Evidence::pushed $local_sha"
+                exit 0
+              fi
+            fi
+            sleep 10
+          done
+          echo "::error::evidence could not be pushed after 5 attempts"
+          exit 1

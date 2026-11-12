@@ -50,7 +50,7 @@ jobs:
     name: Screenshot the website for visual comparison
     # The Android screens are compared against the website at the same phone viewport. Runs on
     # pushes only, and commits its output so the images can be read next to the emulator shots.
-    if: github.event_name == 'push'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
