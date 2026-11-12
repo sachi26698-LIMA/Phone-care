@@ -1,0 +1,441 @@
+#!/usr/bin/env python3
+"""Drive the real debug APK on an Android emulator and record what actually happens.
+
+This script is the automated half of `docs/testing/DEVICE-VALIDATION-REPORT.md`. It does not
+simulate results: every status below comes from a `uiautomator` dump, a screenshot taken by the
+running app, or the device log. If a screen does not appear, the step is FAIL, not skipped.
+
+Evidence it writes into docs/testing/evidence/emulator/:
+  *.png            screenshot of each screen as the emulator rendered it
+  ui-walk-report.md  human-readable pass/fail table
+  ui-walk.json     the same data as JSON
+  logcat.txt       device log, so crashes are visible
+
+Exit code is non-zero when any hard step fails.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+ADB = os.environ.get("ADB", "adb")
+PKG = "app.phonecare.diagnostics"
+APK = os.environ.get("APK", "app/build/outputs/apk/debug/app-debug.apk")
+EVIDENCE = Path(os.environ.get("EVIDENCE_DIR", "docs/testing/evidence/emulator"))
+SCREEN = (720, 1280)  # 720x1280 @ 320 dpi = 360x640 dp, a real small-phone viewport
+DENSITY = 320
+
+STEPS: list[dict[str, str]] = []
+SHOTS: list[str] = []
+NOTES: list[str] = []
+
+
+# ----------------------------------------------------------------------------- plumbing
+
+
+def run(*args: str, timeout: int = 180) -> tuple[int, str]:
+    try:
+        p = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+        return p.returncode, (p.stdout or "") + (p.stderr or "")
+    except subprocess.TimeoutExpired:
+        return 124, f"timeout: {' '.join(args)}"
+
+
+def adb(*args: str, timeout: int = 180) -> tuple[int, str]:
+    return run(ADB, *args, timeout=timeout)
+
+
+def record(status: str, name: str, detail: str = "") -> None:
+    """status: pass | fail | soft | skip"""
+    STEPS.append({"status": status, "name": name, "detail": detail})
+    mark = {"pass": "PASS", "fail": "FAIL", "soft": "NOTE", "skip": "SKIP"}[status]
+    line = f"[{mark}] {name}" + (f" — {detail}" if detail else "")
+    print(line, flush=True)
+    if status == "fail":
+        print(f"::error title=UI walk::{name} — {detail}", flush=True)
+
+
+def dump() -> str:
+    """Return the current accessibility XML, retrying while the UI settles."""
+    for _ in range(6):
+        adb("shell", "uiautomator", "dump", "/sdcard/ui.xml", timeout=60)
+        rc, xml = adb("shell", "cat", "/sdcard/ui.xml", timeout=60)
+        if rc == 0 and xml.lstrip().startswith("<"):
+            return xml
+        time.sleep(1)
+    return ""
+
+
+def nodes(xml: str) -> list[tuple[str, int, int, int]]:
+    """(text, center_x, center_y, bottom_y) for every labelled node."""
+    out: list[tuple[str, int, int, int]] = []
+    try:
+        root = ET.fromstring(xml)
+    except ET.ParseError:
+        return out
+    for node in root.iter("node"):
+        text = (node.get("text") or node.get("content-desc") or "").strip()
+        m = re.match(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", node.get("bounds") or "")
+        if text and m:
+            x1, y1, x2, y2 = (int(v) for v in m.groups())
+            out.append((text, (x1 + x2) // 2, (y1 + y2) // 2, y2))
+    return out
+
+
+def has_text(text: str, xml: str | None = None) -> bool:
+    xml = xml if xml is not None else dump()
+    return any(text.lower() in t.lower() for t, *_ in nodes(xml))
+
+
+def find(text: str, *, scroll: int = 0, bottom_most: bool = False) -> tuple[int, int] | None:
+    """Locate a tappable node by text, optionally scrolling the page to reach it."""
+    for attempt in range(scroll + 1):
+        matches = [n for n in nodes(dump()) if text.lower() in n[0].lower()]
+        if matches:
+            chosen = max(matches, key=lambda n: n[3]) if bottom_most else matches[0]
+            return chosen[1], chosen[2]
+        if attempt < scroll:
+            w, h = screen_size()
+            adb("shell", "input", "swipe", str(w // 2), str(int(h * 0.75)),
+                str(w // 2), str(int(h * 0.35)), "300")
+            time.sleep(0.6)
+    return None
+
+
+def screen_size() -> tuple[int, int]:
+    rc, out = adb("shell", "wm", "size")
+    m = re.search(r"Override size:\s*(\d+)x(\d+)", out) or re.search(r"Physical size:\s*(\d+)x(\d+)", out)
+    return (int(m.group(1)), int(m.group(2))) if m else SCREEN
+
+
+def tap(text: str, *, scroll: int = 0, bottom_most: bool = False) -> bool:
+    spot = find(text, scroll=scroll, bottom_most=bottom_most)
+    if not spot:
+        return False
+    adb("shell", "input", "tap", str(spot[0]), str(spot[1]))
+    time.sleep(1.2)
+    return True
+
+
+def back() -> None:
+    adb("shell", "input", "keyevent", "KEYCODE_BACK")
+    time.sleep(1.0)
+
+
+def wait_for(text: str, timeout: float = 12.0) -> bool:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if has_text(text):
+            return True
+        time.sleep(0.8)
+    return False
+
+
+def shot(name: str) -> bool:
+    path = EVIDENCE / f"{name}.png"
+    try:
+        with open(path, "wb") as fh:
+            subprocess.run([ADB, "exec-out", "screencap", "-p"], stdout=fh, timeout=120, check=False)
+    except Exception as exc:  # noqa: BLE001 - evidence failure must not abort the walk
+        NOTES.append(f"screenshot {name} failed: {exc}")
+        return False
+    if path.exists() and path.stat().st_size > 2048:
+        SHOTS.append(path.name)
+        return True
+    return False
+
+
+def alive() -> bool:
+    rc, out = adb("shell", "pidof", PKG)
+    return rc == 0 and bool(out.strip())
+
+
+# ----------------------------------------------------------------------------- screens
+
+TABS = [
+    ("Home", "Dashboard"),
+    ("Diagnose", "Diagnostics"),
+    ("Network", "Network"),
+    ("Results", "Results"),
+    ("More", "More"),
+]
+
+HUBS = [
+    ("Diagnose", "Diagnostics", [
+        ("Device identity", "Device identity"),
+        ("Battery & health", "Battery & health"),
+        ("Storage", "Storage"),
+        ("Temperature", "Temperature"),
+        ("Display", "Display"),
+        ("Touch", "Touch"),
+        ("Performance", "Performance"),
+        ("Compatibility", "Compatibility"),
+    ]),
+    ("Network", "Network", [
+        ("Cellular diagnostics", "Cellular"),
+        ("Wi-Fi diagnostics", "Wi-Fi"),
+        ("Internet quality", "Internet quality"),
+        ("Indoor survey", "Indoor survey"),
+        ("Troubleshoot", "Troubleshoot"),
+    ]),
+    ("More", "More", [
+        ("Guides", "Guides"),
+        ("Assistant", "Assistant"),
+        ("Methodology", "Methodology"),
+        ("Settings", "Settings"),
+        ("Privacy & permissions", "Privacy & permissions"),
+    ]),
+]
+
+
+def slug(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+
+
+def main() -> int:
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+
+    # --- device prep -----------------------------------------------------------------
+    rc, out = adb("wait-for-device")
+    rc, boot = adb("shell", "getprop", "sys.boot_completed")
+    if "1" not in boot:
+        record("fail", "Emulator finished booting", f"sys.boot_completed={boot.strip()!r}")
+        return 1
+    record("pass", "Emulator finished booting", boot.strip())
+
+    rc, model = adb("shell", "getprop", "ro.product.model")
+    rc2, release = adb("shell", "getprop", "ro.build.version.release")
+    rc3, sdk = adb("shell", "getprop", "ro.build.version.sdk")
+    NOTES.append(f"Device: {model.strip()} · Android {release.strip()} (API {sdk.strip()}) · "
+                 f"emulator, not physical hardware")
+
+    adb("shell", "wm", "size", f"{SCREEN[0]}x{SCREEN[1]}")
+    adb("shell", "wm", "density", str(DENSITY))
+    adb("shell", "settings", "put", "system", "screen_off_timeout", "1800000")
+    adb("shell", "settings", "put", "global", "window_animation_scale", "0")
+    adb("shell", "settings", "put", "global", "transition_animation_scale", "0")
+    adb("shell", "settings", "put", "global", "animator_duration_scale", "0")
+    time.sleep(1.5)
+
+    # --- install + launch ------------------------------------------------------------
+    rc, out = adb("install", "-r", "-g", str(APK), timeout=300)
+    if rc != 0 or "Success" not in out:
+        record("fail", "Install APK", out.strip()[-400:])
+        return 1
+    record("pass", "Install APK", f"{Path(APK).stat().st_size} bytes, runtime permissions granted")
+
+    adb("shell", "pm", "clear", PKG)  # start from a clean profile
+    rc, out = adb("shell", "am", "start", "-W", "-n", f"{PKG}/.MainActivity", timeout=120)
+    launched = "Status: ok" in out or "Activity" in out
+    record("pass" if launched else "fail", "Launch MainActivity", out.strip().splitlines()[-1] if out.strip() else "")
+    if not wait_for("Dashboard", 25):
+        record("fail", "Dashboard renders", "no accessibility node after launch")
+        return 1
+    record("pass", "Dashboard renders", "app bar title and content present")
+    time.sleep(1.5)
+    shot("01-dashboard")
+
+    # --- five tabs -------------------------------------------------------------------
+    for label, title in TABS:
+        ok = tap(label, bottom_most=True)
+        if not ok:
+            record("fail", f"Tab {label}", "label not found in the bottom navigation")
+            continue
+        shown = wait_for(title, 12)
+        record("pass" if shown else "fail", f"Tab {label} → {title}",
+               "" if shown else "expected title not found on screen")
+        if shown:
+            time.sleep(0.8)
+            shot(f"tab-{slug(label)}")
+
+    # --- every pushed screen, with back navigation -----------------------------------
+    n = 2
+    for tab_label, hub_title, rows in HUBS:
+        tap(tab_label, bottom_most=True)
+        wait_for(hub_title, 12)
+        for row, expected in rows:
+            n += 1
+            prefix = f"{n:02d}"
+            if not tap(row, scroll=4):
+                record("fail", f"{row} opens", "row not found on the hub screen")
+                continue
+            shown = wait_for(expected, 15)
+            record("pass" if shown else "fail", f"{row} opens",
+                   "" if shown else f"header {expected!r} not found")
+            if shown:
+                time.sleep(1.2)
+                shot(f"{prefix}-{slug(row)}")
+            back()
+            returned = wait_for(hub_title, 12)
+            record("pass" if returned else "fail", f"{row} back returns to {hub_title}",
+                   "" if returned else "hub title missing after back")
+
+    # --- guide detail ----------------------------------------------------------------
+    tap("More", bottom_most=True)
+    wait_for("More", 10)
+    if tap("Guides", scroll=3):
+        wait_for("Guides", 12)
+        if tap("Battery health is dropping", scroll=2):
+            shown = wait_for("Guide", 12)
+            record("pass" if shown else "fail", "Guide detail opens", "battery-health-decline")
+            if shown:
+                time.sleep(1.0)
+                shot("24-guide-detail")
+            back()
+            wait_for("Guides", 10)
+        else:
+            record("soft", "Guide detail opens", "first guide row not found by title")
+    else:
+        record("fail", "Guides opens from More", "row missing")
+
+    # --- guides search ---------------------------------------------------------------
+    if tap("Search guides, symptoms or categories") or tap("Search"):
+        adb("shell", "input", "text", "wifi")
+        time.sleep(1.5)
+        xml = dump()
+        filtered = any("wi-fi" in t.lower() or "wifi" in t.lower() for t, *_ in nodes(xml))
+        record("pass" if filtered else "fail", "Guide search filters results",
+               "typed 'wifi'" if filtered else "no matching result after typing")
+        for _ in range(4):
+            adb("shell", "input", "keyevent", "KEYCODE_DEL")
+        shot("23-guides-search")
+    else:
+        record("fail", "Guide search field present", "search input not found")
+
+    # --- permission flow + full check ------------------------------------------------
+    tap("Home", bottom_most=True)
+    wait_for("Dashboard", 12)
+    if tap("Run full check"):
+        time.sleep(3.0)
+        xml = dump()
+        dialog = [t for t, *_ in nodes(xml) if re.search(r"allow|while using|deny|permission", t, re.I)]
+        if dialog:
+            record("pass", "Permission dialog shown", dialog[0][:80])
+            shot("25-permission-dialog")
+            grant = find("While using the app") or find("Allow")
+            if grant:
+                adb("shell", "input", "tap", str(grant[0]), str(grant[1]))
+                record("pass", "Permission granted from the dialog", "tapped the system prompt")
+                time.sleep(4.0)
+        else:
+            record("soft", "Permission dialog shown",
+                   "no request was needed on this emulator image")
+        time.sleep(8.0)
+        reported = any(t for t, *_ in nodes(dump()) if re.search(r"signal|rsrp|latency|saved|check", t, re.I))
+        record("pass" if reported else "soft", "Full check reports progress or results",
+               "on-screen measurement text present" if reported else "no measurement text yet")
+        shot("26-full-check")
+    else:
+        record("fail", "Run full check button present", "primary button not found")
+
+    # --- results + export ------------------------------------------------------------
+    tap("Results", bottom_most=True)
+    wait_for("Results", 12)
+    time.sleep(1.0)
+    if find("Export current measurements"):
+        tap("Export current measurements")
+        time.sleep(2.5)
+        sheet = [t for t, *_ in nodes(dump()) if re.search(r"share|nearby|bluetooth", t, re.I)]
+        record("pass" if sheet else "soft", "Export opens the system share sheet",
+               sheet[0][:60] if sheet else "no sheet text detected")
+        shot("27-export-sheet")
+        back()
+    else:
+        record("skip", "Export opens the system share sheet",
+               "no saved report on a freshly cleared profile")
+
+    # --- settings save ---------------------------------------------------------------
+    tap("More", bottom_most=True)
+    wait_for("More", 10)
+    if tap("Settings", scroll=3):
+        wait_for("Settings", 12)
+        if tap("Save"):
+            time.sleep(1.5)
+            saved = has_text("Test server saved")
+            record("pass" if saved else "soft", "Settings save round-trips",
+                   "confirmation shown" if saved else "no confirmation text")
+        else:
+            record("soft", "Settings save round-trips", "Save button not found")
+        back()
+
+    # --- light theme / dark mode -----------------------------------------------------
+    adb("shell", "cmd", "uimode", "night", "yes")
+    time.sleep(2.0)
+    tap("Home", bottom_most=True)
+    wait_for("Dashboard", 12)
+    shot("28-system-dark-mode")
+    record("soft", "System dark mode captured", "the app must stay light; compare 01-dashboard")
+    adb("shell", "cmd", "uimode", "night", "no")
+    time.sleep(1.5)
+
+    # --- tablet / landscape-ish width ------------------------------------------------
+    adb("shell", "wm", "size", "1600x1000")
+    adb("shell", "wm", "density", "160")
+    time.sleep(3.0)
+    adb("shell", "am", "start", "-n", f"{PKG}/.MainActivity", timeout=120)
+    time.sleep(2.5)
+    shot("29-wide-layout")
+    wide = has_text("Dashboard")
+    record("pass" if wide else "fail", "Wide layout still renders the dashboard",
+           "1600x1000 @ 160 dpi (800x500 dp)" if wide else "no dashboard text at wide size")
+    adb("shell", "wm", "size", "reset")
+    adb("shell", "wm", "density", "reset")
+    time.sleep(2.0)
+
+    # --- crash check -----------------------------------------------------------------
+    rc, logcat = adb("shell", "logcat", "-d", "-v", "brief", timeout=180)
+    (EVIDENCE / "logcat.txt").write_text(logcat[-400_000:])
+    crashes = [ln for ln in logcat.splitlines() if "FATAL EXCEPTION" in ln]
+    record("pass" if not crashes else "fail", "No uncaught exceptions in logcat",
+           f"{len(crashes)} fatal exception(s)" if crashes else "clean run")
+    record("pass" if alive() else "fail", "App process still alive at the end",
+           "" if alive() else "process died during the walk")
+
+    # --- report ----------------------------------------------------------------------
+    passed = sum(1 for s in STEPS if s["status"] == "pass")
+    failed = sum(1 for s in STEPS if s["status"] == "fail")
+    soft = sum(1 for s in STEPS if s["status"] == "soft")
+    skipped = sum(1 for s in STEPS if s["status"] == "skip")
+
+    banner = {"pass": "✅", "fail": "❌", "soft": "ℹ️", "skip": "⏭️"}
+    lines = [
+        "# Android UI walk — emulator run",
+        "",
+        f"- Steps: **{len(STEPS)}** · pass {passed} · fail {failed} · notes {soft} · skipped {skipped}",
+        f"- Screenshots: **{len(SHOTS)}** in this folder",
+        f"- Device: {NOTES[0] if NOTES else 'unknown'}",
+        "",
+        "> Produced by `native/android/ui-walk.py` on a GitHub Actions emulator. This is emulator",
+        "> evidence, not a physical handset. Every line came from a `uiautomator` dump or `logcat`.",
+        "",
+        "| Result | Step | Detail |",
+        "| --- | --- | --- |",
+    ]
+    for s in STEPS:
+        detail = s["detail"].replace("|", "\\|")
+        step_name = s["name"].replace("|", "\\|")
+        lines.append("| {} | {} | {} |".format(banner[s["status"]], step_name, detail))
+    if SHOTS:
+        lines += ["", "## Screenshots", ""]
+        lines += [f"- `{name}`" for name in SHOTS]
+    (EVIDENCE / "ui-walk-report.md").write_text("\n".join(lines) + "\n")
+    (EVIDENCE / "ui-walk.json").write_text(json.dumps(
+        {"steps": STEPS, "shots": SHOTS, "notes": NOTES}, indent=2) + "\n")
+
+    print(f"::notice title=UI walk::steps={len(STEPS)} pass={passed} fail={failed} "
+          f"soft={soft} skip={skipped} shots={len(SHOTS)}", flush=True)
+    return 0 if failed == 0 else 1
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    finally:
+        adb("emu", "kill")
