@@ -201,6 +201,9 @@ def slug(text: str) -> str:
 
 def main() -> int:
     EVIDENCE.mkdir(parents=True, exist_ok=True)
+    print(f"cwd={os.getcwd()} python={sys.version.split()[0]} apk={APK}", flush=True)
+    print(f"adb={run(ADB, 'version')[1].strip().splitlines()[0] if run(ADB, 'version')[1].strip() else 'missing'}",
+          flush=True)
 
     # --- device prep -----------------------------------------------------------------
     rc, out = adb("wait-for-device")

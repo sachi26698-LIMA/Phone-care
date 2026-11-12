@@ -232,9 +232,16 @@ jobs:
           emulator-options: >-
             -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
             -no-snapshot -camera-back none -camera-front none
+          # Absolute paths: the action runs this from its own working directory, so a bare
+          # `cd native/android` silently misses and python exits 2 without doing anything.
           script: |
-            cd native/android
-            python3 ui-walk.py
+            echo "cwd=$(pwd) workspace=$GITHUB_WORKSPACE"
+            cd "$GITHUB_WORKSPACE/native/android" || exit 3
+            echo "walking from $(pwd)"; ls -l ui-walk.py
+            python3 -u ui-walk.py > "$GITHUB_WORKSPACE/walk.log" 2>&1
+            rc=$?
+            cat "$GITHUB_WORKSPACE/walk.log"
+            exit $rc
 
       - name: Upload emulator evidence
         if: always()
@@ -245,12 +252,39 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
+      # Logs from this job are not retrievable through the API afterwards, so the raw output is
+      # committed with the screenshots. A failed walk is still diagnosable from the branch.
+      - name: Collect the raw walk log
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p docs/testing/evidence/emulator
+          if [ -f walk.log ]; then
+            cp walk.log docs/testing/evidence/emulator/walk-raw.log
+          else
+            echo "walk.log missing: the walk script never started" \
+              > docs/testing/evidence/emulator/walk-raw.log
+          fi
+          python3 - <<'PY'
+          import pathlib
+          lines = pathlib.Path("docs/testing/evidence/emulator/walk-raw.log").read_text(
+              errors="replace").splitlines()
+          fails = [ln for ln in lines if ln.startswith("[FAIL]")]
+          notes = [ln for ln in lines if ln.startswith("::notice")]
+          print(f"::notice title=UI walk::log lines={len(lines)} fails={len(fails)}")
+          for line in (fails + notes)[:8]:
+              print(f"::notice title=walk::{line[:350]}")
+          for line in lines[-6:]:
+              print(f"::notice title=tail::{line[:350]}")
+          PY
+
       - name: Publish evidence back to the branch
         if: always()
+        working-directory: .
         run: |
           git config user.name "phonecare-ci"
           git config user.email "ci@phonecare.invalid"
-          git add docs/testing/evidence/emulator || true
+          git add -f docs/testing/evidence/emulator || true
           if git diff --cached --quiet; then
             echo "no evidence changes to publish"
           else
