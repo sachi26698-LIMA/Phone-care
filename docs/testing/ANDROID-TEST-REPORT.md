@@ -97,6 +97,11 @@ Workflow: `.github/workflows/android-debug-apk.yml`. Latest run on `arena/45529a
 Caveat: the debug keystore is generated on the runner, so a later run produces a *different*
 signature and therefore a different SHA-256. This digest identifies this artifact only.
 
+Confirmed by the follow-up documentation run ([43192155288](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43192155288)):
+same 935,496-byte APK, different digest
+`643ad620e1b6f8b325fb97313af41d4e37b4ed115f2f452e3d0ef631fda7354c`. Always read `apk-sha256.txt`
+from the artifact you actually downloaded.
+
 ### Why this failed three times before passing
 
 | Run | Failure | Fix |
