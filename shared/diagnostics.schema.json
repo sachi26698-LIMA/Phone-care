@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://phonecare.app/schemas/diagnostics.v1.json",
+  "title": "PhoneCare DiagnosticReport",
+  "description": "Shared contract between the PhoneCare web app and the Android app. Every reading must carry evidence, source, availability and a timestamp; unavailable values must be null rather than fabricated.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "generatedAt", "platform", "app", "device", "session", "network", "measurements", "limitations"],
+  "properties": {
+    "schemaVersion": { "const": "phonecare.report/1" },
+    "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "generatedAt": { "type": "string", "format": "date_time" },
+    "platform": { "enum": ["web", "android"] },
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "build": { "type": ["string", "null"], "maxLength": 40 }
+      }
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manufacturer", "model", "osVersion", "sdkInt"],
+      "properties": {
+        "manufacturer": { "type": ["string", "null"], "maxLength": 80 },
+        "model": { "type": ["string", "null"], "maxLength": 80 },
+        "osVersion": { "type": ["string", "null"], "maxLength": 80 },
+        "sdkInt": { "type": ["integer", "null"], "minimum": 1, "maximum": 100 }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startedAt", "durationMs", "trigger"],
+      "properties": {
+        "startedAt": { "type": "string", "format": "date_time" },
+        "durationMs": { "type": "number", "minimum": 0 },
+        "trigger": { "enum": ["manual", "scheduled", "survey"] }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transport", "carrier", "server"],
+      "properties": {
+        "transport": { "enum": ["wifi", "cellular", "ethernet", "unknown"] },
+        "carrier": { "type": ["string", "null"], "maxLength": 80 },
+        "server": { "type": ["string", "null"], "maxLength": 200 },
+        "sims": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["slot", "carrier", "rat"],
+            "properties": {
+              "slot": { "type": "integer", "minimum": 0, "maximum": 3 },
+              "carrier": { "type": ["string", "null"], "maxLength": 80 },
+              "rat": { "type": ["string", "null"], "maxLength": 16 },
+              "roaming": { "type": ["boolean", "null"] },
+              "active": { "type": ["boolean", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "measurements": {
+      "type": "array",
+      "maxItems": 400,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "value", "unit", "evidence", "source", "availability", "timestamp"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "value": { "type": ["number", "null"] },
+          "unit": { "enum": ["dBm", "dB", "ms", "Mbps", "%", "count", "MHz", "dBm/MHz"] },
+          "evidence": { "enum": ["measured", "estimated", "user", "unavailable"] },
+          "source": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "availability": { "enum": ["available", "permission_denied", "unsupported", "transient"] },
+          "timestamp": { "type": "string", "format": "date_time" },
+          "uncertainty": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "value", "unit"],
+            "properties": {
+              "kind": { "enum": ["resolution", "sample_spread", "none"] },
+              "value": { "type": ["number", "null"] },
+              "unit": { "type": "string", "maxLength": 16 }
+            }
+          },
+          "sampleCount": { "type": ["integer", "null"], "minimum": 1, "maximum": 100000 },
+          "context": {
+            "type": "object",
+            "additionalProperties": { "type": ["string", "number", "boolean", "null"] },
+            "maxProperties": 12
+          },
+          "notes": { "type": "array", "maxItems": 10, "items": { "type": "string", "maxLength": 400 } }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    }
+  }
+}
