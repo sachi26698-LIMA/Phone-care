@@ -91,6 +91,25 @@ jobs:
       - name: Unit tests
         run: gradle --no-daemon --stacktrace testDebugUnitTest
 
+      - name: Summarise unit tests
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import glob
+          import xml.etree.ElementTree as ET
+
+          tests = failures = skipped = 0
+          for path in glob.glob("app/build/test-results/testDebugUnitTest/*.xml"):
+              root = ET.parse(path).getroot()
+              tests += int(root.get("tests", 0))
+              failures += int(root.get("failures", 0)) + int(root.get("errors", 0))
+              skipped += int(root.get("skipped", 0))
+          print(f"::notice title=Unit tests::tests={tests} failures={failures} skipped={skipped}")
+          print(f"unit tests: {tests} tests, {failures} failures, {skipped} skipped")
+          if failures:
+              raise SystemExit(1)
+          PY
+
       - name: Assemble debug APK
         run: gradle --no-daemon --stacktrace assembleDebug
 
