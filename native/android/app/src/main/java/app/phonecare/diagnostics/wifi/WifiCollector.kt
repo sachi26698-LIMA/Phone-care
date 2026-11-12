@@ -136,9 +136,20 @@ class WifiCollector(private val context: Context) {
         }
 
         // --- RSSI --------------------------------------------------------
-        val rssi = capabilities?.signalStrength ?: run {
-            @Suppress("DEPRECATION")
-            wifiInfo.rssi
+        // NetworkCapabilities.getSignalStrength() only exists on API 29+. Calling it on
+        // Android 8/9 would throw NoSuchMethodError at runtime, which is why the access is
+        // guarded by the SDK check rather than by the ?. operator alone.
+        val platformRssi = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            capabilities?.signalStrength
+        } else {
+            null
+        }
+        @Suppress("DEPRECATION")
+        val legacyRssi = wifiInfo.rssi
+        val (rssi, rssiSource) = if (platformRssi != null && platformRssi in -120..0) {
+            platformRssi to "NetworkCapabilities.getSignalStrength()"
+        } else {
+            legacyRssi to "WifiInfo.getRssi() (deprecated path, or the platform value was INVALID)"
         }
         if (rssi in -120..0) {
             measurements += Measurement(
@@ -147,11 +158,7 @@ class WifiCollector(private val context: Context) {
                 value = rssi.toDouble(),
                 unit = MeasureUnit.DBM,
                 evidence = Evidence.MEASURED,
-                source = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    "NetworkCapabilities.getSignalStrength()"
-                } else {
-                    "WifiInfo.getRssi() (deprecated path, API < 29)"
-                },
+                source = rssiSource,
                 availability = Availability.AVAILABLE,
                 timestamp = at,
                 uncertainty = Uncertainty(Uncertainty.Kind.RESOLUTION, 3.0, "dBm"),
@@ -206,7 +213,9 @@ class WifiCollector(private val context: Context) {
         // --- SSID --------------------------------------------------------
         val ssid = readSsid(wifiInfo)
         if (ssid == null) {
-            notes += "SSID is hidden: Android masks it unless location services are on and location permission is granted."
+            notes += "SSID is hidden. Android masks it unless location services are on and location permission " +
+                "is granted; on Android 13+ the SSID also needs NEARBY_WIFI_DEVICES, which this build declares " +
+                "but intentionally never requests because it does not scan."
         }
 
         // --- DNS servers (informational, not a measurement) --------------

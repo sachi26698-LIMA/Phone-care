@@ -19,3 +19,7 @@ local.properties
 .idea
 *.keystore
 *.jks
+
+# Python bytecode (CI helpers)
+__pycache__/
+*.pyc

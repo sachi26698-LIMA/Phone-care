@@ -8,7 +8,8 @@
     "target": "ES2022",
     "declaration": false,
     "incremental": false,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "rootDir": "lib"
   },
   "include": [
     "lib/diagnostic/schema.ts",
@@ -16,6 +17,7 @@
     "lib/diagnostic/survey.ts",
     "lib/diagnostic/compare.ts",
     "lib/diagnostic/triage.ts",
-    "lib/diagnostic/report.ts"
+    "lib/diagnostic/report.ts",
+    "lib/guides/index.ts"
   ]
 }

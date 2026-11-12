@@ -1,0 +1,26 @@
+{
+  "version": "phonecare.tokens/1",
+  "theme": "light-only",
+  "palette": {
+    "ink": "#1A1A1F",
+    "indigo": "#2D2B55",
+    "violet": "#6A5ACD",
+    "mauve": "#A678B9",
+    "sand": "#F0D9B5",
+    "amber": "#F4A62A"
+  },
+  "spacing": [4, 8, 12, 16, 24],
+  "radius": { "card": 16, "pill": 999 },
+  "type": {
+    "display": 28,
+    "title": 22,
+    "section": 16,
+    "body": 14,
+    "small": 12.5,
+    "label": 11.5
+  },
+  "qualityWeights": { "download": 0.45, "upload": 0.25, "latency": 0.2, "stability": 0.1 },
+  "stabilityNoiseFloorMs": 20,
+  "evidence": ["measured", "estimated", "user", "unavailable"],
+  "availability": ["available", "permission_denied", "unsupported", "transient"]
+}

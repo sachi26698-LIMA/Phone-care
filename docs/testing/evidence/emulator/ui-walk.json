@@ -1,0 +1,337 @@
+{
+  "steps": [
+    {
+      "status": "pass",
+      "name": "Emulator finished booting",
+      "detail": "1"
+    },
+    {
+      "status": "pass",
+      "name": "Install APK",
+      "detail": "1056206 bytes, runtime permissions granted"
+    },
+    {
+      "status": "pass",
+      "name": "Launch MainActivity",
+      "detail": "Complete"
+    },
+    {
+      "status": "pass",
+      "name": "Dashboard renders",
+      "detail": "app bar title and content present"
+    },
+    {
+      "status": "pass",
+      "name": "Tab Home \u2192 Dashboard",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Tab Diagnose \u2192 Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Tab Network \u2192 Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Tab Results \u2192 Results",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Tab More \u2192 More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Device identity opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Device identity back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Battery & health opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Battery & health back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Storage opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Storage back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Temperature opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Temperature back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Display opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Display back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Touch opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Touch back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Performance opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Performance back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Compatibility opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Compatibility back returns to Diagnostics",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Cellular diagnostics opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Cellular diagnostics back returns to Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Wi-Fi diagnostics opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Wi-Fi diagnostics back returns to Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Internet quality opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Internet quality back returns to Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Indoor survey opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Indoor survey back returns to Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Troubleshoot opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Troubleshoot back returns to Network",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Guides opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Guides back returns to More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Assistant opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Assistant back returns to More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Methodology opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Methodology back returns to More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Settings opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Settings back returns to More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Privacy & permissions opens",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Privacy & permissions back returns to More",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Permission request shows the system prompt",
+      "detail": "Allow PhoneCare Diagnostics to access this device\u2019s location?"
+    },
+    {
+      "status": "pass",
+      "name": "Permissions granted from the prompts",
+      "detail": "2 system prompt(s) accepted"
+    },
+    {
+      "status": "pass",
+      "name": "Cellular read returns values or a stated reason",
+      "detail": "measured"
+    },
+    {
+      "status": "pass",
+      "name": "Guide detail opens",
+      "detail": "battery-health-decline"
+    },
+    {
+      "status": "pass",
+      "name": "Guide back returns to the list",
+      "detail": ""
+    },
+    {
+      "status": "pass",
+      "name": "Guide search filters results",
+      "detail": "field accepted 'wifi'; Wi-Fi guide listed: 'Diagnosing slow Wi-Fi and laggy connecti'"
+    },
+    {
+      "status": "soft",
+      "name": "Permission dialog shown",
+      "detail": "no request was needed on this emulator image"
+    },
+    {
+      "status": "pass",
+      "name": "Full check reports progress or results",
+      "detail": "on-screen measurement text present"
+    },
+    {
+      "status": "pass",
+      "name": "Export opens the system share sheet",
+      "detail": "No recommended people to share with"
+    },
+    {
+      "status": "pass",
+      "name": "Settings save round-trips",
+      "detail": "confirmation shown"
+    },
+    {
+      "status": "soft",
+      "name": "System dark mode captured",
+      "detail": "the app must stay light; compare 01-dashboard"
+    },
+    {
+      "status": "pass",
+      "name": "Wide layout still renders the dashboard",
+      "detail": "1600x1000 @ 160 dpi (800x500 dp)"
+    },
+    {
+      "status": "pass",
+      "name": "No uncaught exceptions in logcat",
+      "detail": "clean run"
+    },
+    {
+      "status": "pass",
+      "name": "App process still alive at the end",
+      "detail": ""
+    }
+  ],
+  "shots": [
+    "01-dashboard.png",
+    "tab-home.png",
+    "tab-diagnose.png",
+    "tab-network.png",
+    "tab-results.png",
+    "tab-more.png",
+    "03-device-identity.png",
+    "04-battery-health.png",
+    "05-storage.png",
+    "06-temperature.png",
+    "07-display.png",
+    "08-touch.png",
+    "09-performance.png",
+    "10-compatibility.png",
+    "11-cellular-diagnostics.png",
+    "12-wi-fi-diagnostics.png",
+    "13-internet-quality.png",
+    "14-indoor-survey.png",
+    "15-troubleshoot.png",
+    "16-guides.png",
+    "17-assistant.png",
+    "18-methodology.png",
+    "19-settings.png",
+    "20-privacy-permissions.png",
+    "25-permission-dialog.png",
+    "26-cellular-read.png",
+    "24-guide-detail.png",
+    "23-guides-search.png",
+    "26-full-check.png",
+    "27-export-sheet.png",
+    "28-system-dark-mode.png",
+    "29-wide-layout.png"
+  ],
+  "notes": [
+    "Device: sdk_gphone64_x86_64 \u00b7 Android 14 (API 34) \u00b7 emulator, not physical hardware",
+    "Foreground window after launch: mCurrentFocus=Window{a996c3a u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}"
+  ]
+}

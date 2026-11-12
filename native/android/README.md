@@ -18,8 +18,8 @@ device. Here is exactly what has been proven.
 | Step | Status | Evidence |
 | --- | --- | --- |
 | All 10 Kotlin files compile against `android-35/android.jar` | ✅ | `kotlinc 2.4.21`, `-jvm-target 17`, exit 0, 47 classes, no warnings |
-| Engine logic behaves as specified | ✅ | `verification/EngineChecks.kt` → `27 passed, 0 failed` |
-| Unit tests | ✅ | 4/4 locally (functional JUnit stub); `gradle testDebugUnitTest` green in CI |
+| Engine logic behaves as specified | ✅ | 27 checks, run standalone and by `gradle testDebugUnitTest` in CI |
+| Unit tests | ✅ | 4 schema tests + 27 engine checks; `gradle testDebugUnitTest` green in CI |
 | Manifest + resources + icon link into an APK shell | ✅ | `aapt2 2.20` link, badging shows package, minSdk 26, targetSdk 35, permissions, launcher activity, icon |
 | Gradle build (`assembleDebug`) | ✅ | GitHub Actions run [43191694923](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191694923) |
 | Signed, installable debug APK | ✅ | 935,496 B, SHA-256 `b42e7cbf…2da33ff5`, v2-signed, uploaded as `phonecare-debug-apk` |
@@ -67,8 +67,8 @@ native/android/
 │     ├─ net/                     // ConnectivityMonitor (NetworkCallback transitions during a run)
 │     ├─ optimization/            // Tips: deterministic guidance rules + explicit "limits" boundary
 │     └─ survey/                  // rooms, repeated samples, median/confidence
-├─ verification/EngineChecks.kt   // 27 desktop checks (no Android runtime needed)
-└─ app/src/test/java/…/SchemaInvariantTest.kt
+├─ app/src/test/java/…/verification/EngineChecks.kt  // 27 checks, also a JUnit test in CI
+└─ app/src/test/java/…/{SchemaInvariantTest,EngineChecksTest}.kt
 ```
 
 ## 3. Configuration

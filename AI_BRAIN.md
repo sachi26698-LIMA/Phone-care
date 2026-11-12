@@ -878,3 +878,126 @@ tests), so a drift in one platform shows up as a failing test rather than a sile
 
 Browser readings and native readings are never merged: `/network` labels each capability with its
 source, and Android measurements carry `evidence` + `source` describing the telephony API used.
+
+---
+
+## 15. Device-validation readiness (no device results yet)
+
+The APK exists; **no phone has run it**. This round prepared the validation instead of pretending to
+perform it.
+
+### 15.1 Artifacts produced
+
+| File | Purpose |
+| --- | --- |
+| `docs/testing/DEVICE-VALIDATION-REPORT.md` | Fill-in report: metadata, 13 cellular metrics with their APIs and sanity bounds, Wi-Fi table, permission matrix, 4G/5G transition log, indoor/outdoor survey, 10-run stability table, battery/wakelock checks, report interoperability, verdict rules. Every cell starts as `NOT RUN` |
+| `docs/native/METRIC-EVIDENCE-MATRIX.md` | Authoritative mapping metric → API → minSdk → evidence/availability semantics, dual-SIM limits, and the list of data the app will never read |
+| `docs/native/DEVICE-TEST-CHECKLIST.md` | Protocol, extended with battery/foreground-service steps and stricter exit criteria |
+
+### 15.2 Defects found by auditing metrics against their APIs
+
+| # | Defect | Would have caused |
+| --- | --- | --- |
+| 1 | `NetworkCapabilities.getSignalStrength()` called unguarded | crash on Android 8/9 (minSdk 26) |
+| 2 | invalid platform RSSI suppressed valid `WifiInfo.getRssi()` | false "RSSI unavailable" |
+| 3 | timing advance nested inside the API-30 band block | TA never read on Android 8–10 |
+| 4 | non-NR cell on API 29+ emitted no 5G row | "no 5G" without explanation |
+| 5 | service state required location unnecessarily | false permission-denied |
+| 6 | unavailable service state used a different metric id | split metric in reports |
+| 7 | missing phone-state emitted no network-type row | silent gap |
+| 8 | `rsrpDbm` ignored NR cells | guidance saw no signal on 5G-only cells |
+| 9 | overlapping runs allowed | mixed samples during repeated testing |
+
+All nine are fixed; the sources still compile with zero warnings.
+
+### 15.3 Tests now run in CI
+
+`EngineChecks.kt` moved into the unit-test source set (`app/src/test/java/.../verification/`), so
+`gradle testDebugUnitTest` executes **4 schema tests + 27 engine checks** instead of just four.
+`verify-engine.sh` runs the same 27 checks on a desktop JVM without Gradle.
+
+### 15.4 What is still unproven
+
+- Any radio value on any device.
+- 4G↔5G transition behaviour, dual-SIM slot attribution, indoor/outdoor deltas.
+- Battery consumption and wakeup behaviour under a 10-run session.
+- Report round-trip from the app to `/api/reports` with a device-generated payload.
+
+Until `docs/testing/DEVICE-VALIDATION-REPORT.md` contains observed values, the Android app is
+**built and unit-verified, not device-validated** — and it must not be called production-ready.
+
+---
+
+## 16. Phase 6 — website / Android feature parity
+
+The Android app is no longer a cellular demo. It is a 24-screen native client built from the same
+product definition as the website.
+
+### 16.1 What was audited
+
+The full website inventory (`docs/parity/WEBSITE-FEATURE-INVENTORY.md`) was produced from the actual
+tree: 20 page routes, 6 API routes, 16 lib engines, 30 components, 9 user workflows. No route was
+omitted.
+
+### 16.2 What was built
+
+| Area | Screens |
+| --- | --- |
+| Shell | app bar + status line + **5-tab bottom navigation** + single back stack |
+| Tabs | Dashboard, Diagnostics hub, Network hub, Results, More |
+| Device | Device identity, Battery & health, Storage, Temperature, Display, Touch, Performance, Compatibility |
+| Network | Cellular, Wi-Fi, Internet quality, Indoor survey, Troubleshoot |
+| Product | Guides (8, searchable), Guide detail, Assistant, Methodology, Settings, Privacy & permissions |
+
+Design system: `ui/Theme.kt` (tokens) + `ui/Components.kt` (card, button, badge, chip, banner,
+empty state, nav row, stat block, measurement row). Palette is the mandated brand set, light theme
+only, and a contract test fails if any hex, type size or radius drifts from
+`shared/design-tokens.json`.
+
+### 16.3 Shared, not duplicated by accident
+
+| Definition | Shared artefact | Enforcement |
+| --- | --- | --- |
+| Report schema | `shared/diagnostics.schema.json` ↔ `core/DiagnosticSchema.kt` | 67 contract assertions |
+| Quality weights | `.45/.25/.20/.10` in both engines | contract test reads the Kotlin weight literals |
+| Stability floor | 20 ms in both | engine checks |
+| Guide text | generated `content/Guides.kt` from `lib/guides/index.ts` | slug + title parity assertions |
+| Design tokens | `shared/design-tokens.json` | palette/type/radius assertions |
+| Evidence vocabulary | schema enum ↔ Kotlin enum | enum equality assertion |
+| Triage rules | `lib/diagnostic/triage.ts` ↔ `optimization/Tips.kt` | engine checks on rule ids/order |
+
+### 16.4 Native advantages (real, not marketing)
+
+Modem metrics (LTE RSRP/RSRQ/RSSNR/RSSI/band/TA, NR SS-RSRP/RSRQ/SINR/PCI), dual-SIM carriers,
+Wi-Fi gateway/DNS/link speed, transition counting, battery electricals, storage volumes, thermal
+status, refresh-rate modes, HDR types, per-pointer touch tracing, permission state machine.
+
+### 16.4b What running it changed
+
+Phase 7 ran the app on an emulator and found ten real defects, all fixed: an app-bar spacer that
+swallowed every screen (a `wrap_content` `View` expands under an AT_MOST spec), duplicated page
+titles, no in-app back control, a floating grey back box, a platform-grey status bar, dead guide
+cards, two competing primary buttons, guide search that could not find "Wi-Fi" from "wifi", search
+results hidden behind the keyboard, and a bottom navigation that stretched edge to edge on tablets.
+The lesson recorded in `Layout.flexSpacer`: a bare `View` is never a safe spacer.
+
+### 16.5 Honest gaps
+
+- No device or emulator run: no screenshot comparison at equivalent sizes has been performed.
+- Android has no CPU die temperature, no TX-power control, no Wi-Fi channel width without scanning,
+  no per-app usage without privileged access. Each screen says so instead of inventing a number.
+- The assistant is deterministic on-device; the website's optional proxied model is not replicated.
+- Browser and native numbers are never merged: `/network` and the app both label the source.
+
+### 16.6 Verification state
+
+| Check | Result |
+| --- | --- |
+| Kotlin compile (all sources) | clean |
+| Engine checks | **30/30** |
+| Contract + parity | **67/67** |
+| Parity audit | 20 routes, 24 screens, 6 API routes, all accounted for |
+| Website typecheck / build | clean |
+| APK | 1,056,206 bytes, sha256 `27e97ef5…ef56f3bb`, run 43276811143 |
+| Emulator walkthrough | **57/59 checks pass, 0 fail, 32 screenshots** (API 34, 360x640 dp) |
+| Physical device walkthrough | **NOT RUN** — no handset here |

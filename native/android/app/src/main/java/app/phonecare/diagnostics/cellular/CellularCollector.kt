@@ -87,28 +87,51 @@ class CellularCollector(private val context: Context) {
         }
 
         // --- Service state -----------------------------------------------
-        if (hasPhoneState && hasLocation) {
+        // getServiceState() needs READ_PHONE_STATE only; location is not required for
+        // the state/roaming fields read here (operator names may be masked regardless).
+        if (hasPhoneState) {
             val state = runCatching { manager.serviceState }.getOrNull()
             if (state != null) {
                 measurements += serviceStateMeasurement(state, at)
             } else {
-                notes += "The platform returned no service state."
+                measurements += Measurement.unavailable(
+                    id = "net.in_service",
+                    label = "In service",
+                    unit = MeasureUnit.COUNT,
+                    source = "TelephonyManager.getServiceState()",
+                    availability = Availability.TRANSIENT,
+                    at = at,
+                    notes = listOf("The platform returned no service state."),
+                )
             }
         } else {
             measurements += Measurement.unavailable(
-                id = "net.service_state",
-                label = "Service state",
+                id = "net.in_service",
+                label = "In service",
                 unit = MeasureUnit.COUNT,
-                source = "TelephonyManager.getServiceState",
-                availability = if (hasPhoneState) Availability.PERMISSION_DENIED else Availability.PERMISSION_DENIED,
+                source = "TelephonyManager.getServiceState()",
+                availability = Availability.PERMISSION_DENIED,
                 at = at,
-                notes = listOf("Requires READ_PHONE_STATE and location access."),
+                notes = listOf("Requires READ_PHONE_STATE."),
             )
         }
 
         // --- Data network type -------------------------------------------
         val networkType = if (hasPhoneState) runCatching { manager.dataNetworkType }.getOrNull() else null
-        if (networkType != null) {
+        if (networkType == null) {
+            measurements += Measurement.unavailable(
+                id = "net.data_network_type",
+                label = "Data network type",
+                unit = MeasureUnit.COUNT,
+                source = "TelephonyManager.getDataNetworkType()",
+                availability = if (hasPhoneState) Availability.TRANSIENT else Availability.PERMISSION_DENIED,
+                at = at,
+                notes = listOf(
+                    if (hasPhoneState) "The modem did not report a data network type."
+                    else "Requires READ_PHONE_STATE.",
+                ),
+            )
+        } else {
             measurements += Measurement(
                 id = "net.data_network_type",
                 label = "Data network type",
@@ -170,7 +193,8 @@ class CellularCollector(private val context: Context) {
         }
 
         notes += "Radio values are reported by the modem, are quantised (often 1 dB steps) and may be stale because Android throttles cell queries."
-        val rsrp = measurements.firstOrNull { it.id == "lte.rsrp" }?.value
+        val rsrp = measurements.firstOrNull { it.id == "lte.rsrp" && it.value != null }?.value
+            ?: measurements.firstOrNull { it.id == "nr.ss_rsrp" && it.value != null }?.value
         return Snapshot(
             measurements = measurements,
             sims = sims,
@@ -197,39 +221,65 @@ class CellularCollector(private val context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             result += dbm("lte.rssi", "LTE RSSI", strength.rssi, at, "CellSignalStrengthLte.getRssi() (API 29+)")
         }
+
+        // getBands()/getPci() arrived with API 30; below that the band is simply unknown.
         val identity: CellIdentityLte = cell.cellIdentity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                identity.bands.firstOrNull()?.let { band ->
-                    result += Measurement(
-                        id = "lte.band",
-                        label = "LTE band",
-                        value = band.toDouble(),
-                        unit = MeasureUnit.COUNT,
-                        evidence = Evidence.MEASURED,
-                        source = "CellIdentityLte.getBands()",
-                        availability = Availability.AVAILABLE,
-                        timestamp = at,
-                        context = mapOf("pci" to identity.pci.toString()),
-                    )
-                }
-            }
-            // Timing advance lives on CellSignalStrengthLte (public since API 17), not the identity.
-            val timingAdvance = strength.timingAdvance
-            if (timingAdvance != CellInfo.UNAVAILABLE) {
+            identity.bands.firstOrNull()?.let { band ->
                 result += Measurement(
-                    id = "lte.timing_advance",
-                    label = "LTE timing advance",
-                    value = timingAdvance.toDouble(),
+                    id = "lte.band",
+                    label = "LTE band",
+                    value = band.toDouble(),
                     unit = MeasureUnit.COUNT,
                     evidence = Evidence.MEASURED,
-                    source = "CellSignalStrengthLte.getTimingAdvance()",
+                    source = "CellIdentityLte.getBands() (API 30+)",
                     availability = Availability.AVAILABLE,
                     timestamp = at,
-                    notes = listOf(
-                        "Lower values generally mean the phone is closer to the tower.",
-                        "Many OEM modems return UNAVAILABLE here; that is reported as null, not as zero.",
-                    ),
+                    context = mapOf("pci" to identity.pci.toString()),
                 )
+            }
+        } else {
+            result += Measurement.unavailable(
+                id = "lte.band",
+                label = "LTE band",
+                unit = MeasureUnit.COUNT,
+                source = "CellIdentityLte.getBands()",
+                availability = Availability.UNSUPPORTED,
+                at = at,
+                notes = listOf("Band reporting requires Android 11 (API 30) or newer."),
+            )
+        }
+
+        // Timing advance lives on CellSignalStrengthLte (public since API 17), not the identity,
+        // so it must not be gated behind the API-30 band check.
+        val timingAdvance = strength.timingAdvance
+        if (timingAdvance != CellInfo.UNAVAILABLE) {
+            result += Measurement(
+                id = "lte.timing_advance",
+                label = "LTE timing advance",
+                value = timingAdvance.toDouble(),
+                unit = MeasureUnit.COUNT,
+                evidence = Evidence.MEASURED,
+                source = "CellSignalStrengthLte.getTimingAdvance()",
+                availability = Availability.AVAILABLE,
+                timestamp = at,
+                notes = listOf(
+                    "Lower values generally mean the phone is closer to the tower.",
+                    "Many OEM modems return UNAVAILABLE here; that is reported as null, not as zero.",
+                ),
+            )
+        } else {
+            result += Measurement.unavailable(
+                id = "lte.timing_advance",
+                label = "LTE timing advance",
+                unit = MeasureUnit.COUNT,
+                source = "CellSignalStrengthLte.getTimingAdvance()",
+                availability = Availability.UNSUPPORTED,
+                at = at,
+                notes = listOf(
+                    "The modem returned UNAVAILABLE. Most OEM firmwares do not implement timing advance.",
+                ),
+            )
         }
         return result
     }
@@ -263,7 +313,20 @@ class CellularCollector(private val context: Context) {
                 ),
             )
         }
-        val nr = cell as? android.telephony.CellInfoNr ?: return emptyList()
+        val nr = cell as? android.telephony.CellInfoNr ?: return listOf(
+            Measurement.unavailable(
+                id = "nr.ss_rsrp",
+                label = "5G NR SS-RSRP",
+                unit = MeasureUnit.DBM,
+                source = "CellInfoNr",
+                availability = Availability.UNSUPPORTED,
+                at = at,
+                notes = listOf(
+                    "The serving cell is not 5G NR; no NR metrics exist for this reading.",
+                    "NSA 5G often still reports an LTE serving cell, so an empty NR row is expected.",
+                ),
+            ),
+        )
         val strength = nr.cellSignalStrength as android.telephony.CellSignalStrengthNr
         val identity = nr.cellIdentity as? CellIdentityNr
         return listOfNotNull(

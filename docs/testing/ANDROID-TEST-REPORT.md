@@ -18,13 +18,14 @@ following was nevertheless executed with tools obtained from npm/PyPI/GitHub:
 | Check | Tool | Result |
 | --- | --- | --- |
 | All 10 Kotlin files compile | `kotlinc 2.4.21` + `android-35/android.jar`, `-jvm-target 17` | **exit 0, 0 warnings, 47 classes** |
-| Engine behaviour | `verification/EngineChecks.kt` (desktop JVM) | **27 passed, 0 failed** |
-| Unit tests (desktop) | `SchemaInvariantTest` executed via a functional JUnit stub runner | **4 passed, 0 failed** |
-| Unit tests (Gradle) | `gradle testDebugUnitTest` on the CI runner | **success**, HTML report artifact uploaded |
+| Engine behaviour | `app/src/test/.../verification/EngineChecks.kt` (desktop JVM + Gradle test) | **27 passed, 0 failed** |
+| Unit tests (desktop) | schema tests executed via a functional JUnit stub runner | **4 passed, 0 failed** |
+| Engine checks | `verify-engine.sh` after refactor into the test source set | **27 passed, 0 failed** |
+| Unit tests (Gradle) | `gradle testDebugUnitTest` — now includes `EngineChecksTest` (27 checks) | **success** in CI, HTML report uploaded |
 | APK build | `gradle assembleDebug` on the CI runner | **success** — `app-debug.apk`, 935,496 B |
 | APK verification | `aapt2 dump badging`, `unzip -l`, `apksigner verify` on the runner | **success** — all assertions passed |
 | Manifest + resources + adaptive icon | `aapt2 2.20` compile + link | exit 0; badging confirms package, minSdk 26, targetSdk 35, permissions, launcher activity, icon |
-| Web contract still consistent with Kotlin types | `npm run test:contract` | 46 passed, 0 failed |
+| Web contract + parity | `npm run test:contract` | 67 passed, 0 failed (21 parity assertions) |
 
 Reproduce the first two:
 
@@ -71,6 +72,40 @@ floor; 20/200/400 unstable); score withheld when `scored=false`, > 80 when valid
 They will run for real as `gradle testDebugUnitTest` in CI; the local run used a functional
 stand-in for JUnit's `Assert` because `junit.jar` cannot be downloaded here.
 
+## 3a. Phase 6 — complete feature parity
+
+The app is no longer a single cellular screen. It now has **24 screens** covering every website
+route, built from one design system (`ui/Theme.kt`, `ui/Components.kt`).
+
+| Evidence | Result |
+| --- | --- |
+| Kotlin sources compile against `android.jar` 35 | ✅ 84 classes, **0 warnings** |
+| Screens | 24 (5 tab roots + 19 pushed) |
+| Guides | 8, generated from `lib/guides/index.ts` — parity asserted by the contract test |
+| Design tokens | palette, type scale, radius and scoring weights asserted against `shared/design-tokens.json` |
+| Engine checks | 27/27 (unchanged, still runnable standalone and via Gradle) |
+| Device walkthrough | ⛔ **NOT RUN** |
+
+Mapping and limitations: `docs/parity/ANDROID-PARITY-MATRIX.md`.
+
+## 3b. Pre-device hardening (bug fixes found while auditing for this validation round)
+
+Auditing every metric against its API surfaced four real defects. All were fixed before device
+testing begins, because each would have produced either a crash or a mislabelled reading:
+
+| # | Defect | Consequence | Fix |
+| --- | --- | --- | --- |
+| 1 | `NetworkCapabilities.getSignalStrength()` was called without an API check | **crash on Android 8/9** (`NoSuchMethodError`), i.e. minSdk 26–28 | guarded by `SDK_INT >= Q`, with a documented fallback to `WifiInfo.getRssi()` |
+| 2 | Invalid platform RSSI suppressed a valid `WifiInfo` value | valid RSSI shown as `unavailable` | platform value used only when inside −120…0, otherwise legacy value, and the `source` string says which |
+| 3 | LTE timing advance was inside the API-30 band block | TA silently never read on Android 8–10 | moved out of the guard; still reported `unsupported` when the modem returns `UNAVAILABLE` |
+| 4 | A non-NR serving cell on API 29+ produced no 5G row at all | missing row looked like "5G absent" without explanation | now emits `nr.ss_rsrp` as `unsupported` with the NSA explanation |
+
+Also fixed while auditing: service state no longer requires location permission (only
+`READ_PHONE_STATE`), its unavailable row uses the same metric id (`net.in_service`) as the available
+one, `net.data_network_type` now emits a permission-denied row instead of nothing, `rsrpDbm` falls
+back to NR SS-RSRP when the serving cell is 5G, and overlapping measurement runs are refused with an
+explicit message (protects the repeated-test protocol).
+
 ## 4. CI build — executed successfully
 
 Workflow: `.github/workflows/android-debug-apk.yml`. Latest run on `arena/45529a28-phone-care`:
@@ -79,7 +114,48 @@ Workflow: `.github/workflows/android-debug-apk.yml`. Latest run on `arena/45529a
 - pull-request run: [43191704293](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191704293) — **success**
 - every step green: checkout → JDK 17 → locate SDK → install `platforms;android-35` + `build-tools;35.0.0` → Gradle 8.9 → **unit tests** → **assembleDebug** → **verify** → upload
 
-### Artifact
+### Phase 7 emulator validation
+
+Run [43276811143](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43276811143) — **success**
+
+| Field | Value |
+| --- | --- |
+| Walk steps | **59: 57 pass, 0 fail**, 2 informational notes |
+| Screenshots | 32 (`docs/testing/evidence/emulator/`) |
+| APK | 1,056,206 bytes, sha256 `27e97ef5…ef56f3bb` |
+| Device | API 34 x86_64 emulator, 360x640 dp — **not a physical handset** |
+| Engine checks | 30/30 |
+| Crashes in logcat | 0 |
+
+Ten defects were found and fixed by running the app; the details, the evidence and the remaining
+limitations are in **[PHASE7-UI-VALIDATION.md](PHASE7-UI-VALIDATION.md)**.
+
+### Phase 6 parity build
+
+Run [43201262739](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43201262739) — **success**
+
+| Field | Value |
+| --- | --- |
+| Unit tests | `tests=5 failures=0 skipped=0` |
+| APK | **1,052,578 bytes** (24 screens + 8 guides added ~117 KB) |
+| SHA-256 | `580bd2704b6433ebf668f47aec473e2b7ebdce0cb817f402f6e6f47792fbcb36` |
+| Screens | 24 |
+| Signature | v2, verified on the runner |
+
+### Latest build with the hardening fixes
+
+Run [43197869825](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43197869825) — **success**
+
+| Field | Value |
+| --- | --- |
+| Unit tests | annotation reports **`tests=5 failures=0 skipped=0`** (4 schema tests + 1 test running the 27 engine checks) |
+| APK | `app-debug.apk`, **936,592 bytes** |
+| SHA-256 | `19a71bbf4361a3a1c85e864fe006e5f7d1f121c4d004527e57e5ef98110f94a2` |
+| Node/governance | no merge or deploy performed for this round |
+
+This is the APK to install for device validation: it contains the nine fixes listed in §3b.
+
+### Earlier artifact
 
 | Field | Value |
 | --- | --- |

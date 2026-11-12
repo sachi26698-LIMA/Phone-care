@@ -45,3 +45,82 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  website-screenshots:
+    name: Screenshot the website for visual comparison
+    # The Android screens are compared against the website at the same phone viewport. Runs on
+    # pushes only, and commits its output so the images can be read next to the emulator shots.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Start the production server
+        run: |
+          nohup npx next start -p 3000 > /tmp/next.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://127.0.0.1:3000/; then echo "up after ${i}s"; break; fi
+            sleep 1
+          done
+          curl -sf -o /dev/null http://127.0.0.1:3000/ || { echo "::error::site never started"; tail -30 /tmp/next.log; exit 1; }
+
+      - name: Install Chromium
+        run: npx --yes playwright@1.49.0 install --with-deps chromium
+
+      - name: Screenshot every route at phone width
+        run: |
+          set -x
+          mkdir -p docs/testing/evidence/website
+          shot() { # route, name, width, height
+            npx --yes playwright@1.49.0 screenshot --viewport-size="$3,$4" \
+              --wait-for-timeout=1800 --full-page "http://127.0.0.1:3000$1" \
+              "docs/testing/evidence/website/$2.png" || echo "::warning::failed to shoot $1"
+          }
+          shot / "phone-home" 390 844
+          shot /diagnostics "phone-diagnostics" 390 844
+          shot /diagnostics/network "phone-diagnostics-network" 390 844
+          shot /network "phone-network" 390 844
+          shot /network/quality "phone-quality" 390 844
+          shot /guides "phone-guides" 390 844
+          shot /assistant "phone-assistant" 390 844
+          shot /results "phone-results" 390 844
+          shot / "tablet-home" 768 1024
+          ls -la docs/testing/evidence/website
+
+      - name: Publish screenshots to the branch
+        if: always()
+        run: |
+          git config user.name "phonecare-ci"
+          git config user.email "ci@phonecare.invalid"
+          git add -f docs/testing/evidence/website || true
+          if git diff --cached --quiet; then
+            echo "no screenshot changes to publish"
+          else
+            git commit -m "visual: website screenshots at phone and tablet width [skip ci]"
+            # Another job may have committed while this one was booting an emulator.
+            for attempt in 1 2 3; do
+              if git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push; then
+                echo "evidence pushed on attempt $attempt"; break
+              fi
+              sleep 5
+            done
+          fi
+

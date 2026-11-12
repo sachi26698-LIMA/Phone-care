@@ -112,6 +112,19 @@ of 1 with 0 lost is normal and must not be reported as instability.
 
 ---
 
+## 6b. Battery and foreground service
+
+| # | Step | Expected | Observed |
+| --- | --- | --- | --- |
+| B1 | `adb shell dumpsys activity services app.phonecare.diagnostics` | `No services` — this build starts none | ⬜ |
+| B2 | `adb shell dumpsys power \| grep -i phonecare` after a run | no wakelock entries | ⬜ |
+| B3 | `adb shell dumpsys batterystats --reset`, run 10 tests, then `dumpsys batterystats app.phonecare.diagnostics` | record the measured delta **and** screen-on time | ⬜ |
+| B4 | Leave the app in the background for 10 min | process idle, no CPU wakeups (`adb shell top -b -n 1`) | ⬜ |
+| B5 | Confirm no notification / foreground-service icon appears | none | ⬜ |
+
+Battery numbers are only meaningful with the screen-on duration next to them; write both or write
+neither.
+
 ## 7. Report interoperability
 
 | # | Step | Expected |
@@ -123,6 +136,12 @@ of 1 with 0 lost is normal and must not be reported as instability.
 
 ---
 
+## 7b. Feature-parity walkthrough
+
+Every screen in `docs/parity/ANDROID-PARITY-MATRIX.md` must open, render and go back cleanly. Note
+any screen that shows a placeholder instead of a real or explicitly-unavailable value — that is a
+defect, not a cosmetic issue.
+
 ## 8. Exit criteria
 
 The Android app may be called **operational** only when all of these hold:
@@ -133,6 +152,9 @@ The Android app may be called **operational** only when all of these hold:
 - [ ] Denial paths produce explanations, never zeros.
 - [ ] Quality test completes on both Wi-Fi and cellular.
 - [ ] Report accepted by `/api/reports` with 200.
+- [ ] 10 consecutive quality runs without crash, ANR or overlapping runs.
+- [ ] Battery delta + screen-on time recorded; no services and no wakelocks.
+- [ ] The filled report is saved at `docs/testing/DEVICE-VALIDATION-REPORT.md`.
 - [ ] Every table above has observed values, or an explicit "blocked by …" note.
 
 Until then the correct status is: **compiles and unit-verified, not device-verified.**

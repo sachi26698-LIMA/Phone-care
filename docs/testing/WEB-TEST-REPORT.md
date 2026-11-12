@@ -10,7 +10,7 @@
 | Check | Command | Result |
 | --- | --- | --- |
 | TypeScript | `npx tsc --noEmit` | **0 errors** |
-| Shared contract | `npm run test:contract` | **46 passed, 0 failed** |
+| Shared contract + parity | `npm run test:contract` | **67 passed, 0 failed** (46 engine/schema + 21 cross-platform) |
 | Production build | `npm run build` | **exit 0** — 33 route entries (27 pages + 6 API), 32 static pages generated |
 | CI workflow on GitHub | `.github/workflows/web-checks.yml` | ✅ **success** — push run [43191694935](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191694935), PR run [43191704175](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191704175) |
 
@@ -31,6 +31,16 @@ Build routes: `/`, `/diagnostics/*` (10), `/network`, `/network/quality`, `/netw
 
 These are the same definitions the Android app mirrors in Kotlin; the Android side is checked by
 `native/android/verification/EngineChecks.kt` (27 checks) and the JUnit unit tests (4).
+
+## 2b. Cross-platform parity assertions (new in Phase 6)
+
+The contract harness now also fails if the Android app drifts from the website:
+
+- every palette hex in `shared/design-tokens.json` must appear in `ui/Theme.kt`;
+- the Android type scale and card radius must match the token file;
+- every website guide slug **and title** must exist in the generated `content/Guides.kt`;
+- Android quality weights must equal the shared weights (download .45, upload .25, latency .20, stability .10);
+- the token evidence/availability lists must equal the schema enums.
 
 ## 3. Browser/runtime behaviour verified earlier (Phase 3, commit `4d1fa18`)
 
