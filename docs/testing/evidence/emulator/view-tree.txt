@@ -1,0 +1,85 @@
+--------- beginning of main
+11-12 15:06:43.127  3098  3098 I PhoneCareDiag: === tree after Dashboard layout, window=720x1184
+11-12 15:06:43.127  3098  3098 I PhoneCareDiag: LinearLayoutV w=720 h=1184 params=(-1,-1) vis=0 
+11-12 15:06:43.128  3098  3098 I PhoneCareDiag:   LinearLayoutV w=720 h=1184 params=(-1,-2) vis=0 
+11-12 15:06:43.128  3098  3098 I PhoneCareDiag:     LinearLayoutH w=656 h=1144 params=(-1,-2) vis=0 
+11-12 15:06:43.139  3098  3098 I PhoneCareDiag:       TextView w=165 h=43 params=(-2,-2) vis=0 PhoneCare
+11-12 15:06:43.141  3098  3098 I PhoneCareDiag:       View w=396 h=1144 params=(0,-2) vis=0 
+11-12 15:06:43.141  3098  3098 I PhoneCareDiag:       TextView w=95 h=44 params=(-2,-2) vis=0 native
+11-12 15:06:43.142  3098  3098 I PhoneCareDiag:     TextView w=656 h=0 params=(-1,-2) vis=0 Dashboard
+11-12 15:06:43.144  3098  3098 I PhoneCareDiag:     TextView w=0 h=0 params=(-1,-2) vis=8 
+11-12 15:06:43.144  3098  3098 I PhoneCareDiag:     View w=656 h=1 params=(-1,1) vis=0 
+11-12 15:06:43.144  3098  3098 I PhoneCareDiag:   ScrollView w=720 h=0 params=(-1,0) vis=0 
+11-12 15:06:43.144  3098  3098 I PhoneCareDiag:     LinearLayoutV w=720 h=3103 params=(-1,-1) vis=0 
+11-12 15:06:43.145  3098  3098 I PhoneCareDiag:       LinearLayoutV w=720 h=3103 params=(-1,-2) vis=0 
+11-12 15:06:43.145  3098  3098 I PhoneCareDiag:         TextView w=656 h=76 params=(-1,-2) vis=0 PhoneCare
+11-12 15:06:43.145  3098  3098 I PhoneCareDiag:         TextView w=656 h=105 params=(-1,-2) vis=0 The same diagnostics as 
+11-12 15:06:43.145  3098  3098 I PhoneCareDiag:         LinearLayoutV w=656 h=502 params=(-1,-2) vis=0 
+11-12 15:06:43.145  3098  3098 I PhoneCareDiag:           TextView w=592 h=43 params=(-1,-2) vis=0 Full check
+11-12 15:06:43.145  3098  3098 I PhoneCareDiag:           TextView w=592 h=139 params=(-1,-2) vis=0 Cellular, Wi-Fi, latency
+11-12 15:06:43.145  3098  3098 I PhoneCareDiag:           Button w=592 h=96 params=(-1,-2) vis=0 Run full check
+11-12 15:06:43.146  3098  3098 I PhoneCareDiag:           Button w=592 h=96 params=(-1,-2) vis=0 Open network lab
+11-12 15:06:43.146  3098  3098 I PhoneCareDiag:         TextView w=656 h=72 params=(-1,-2) vis=0 AT A GLANCE
+11-12 15:06:43.146  3098  3098 I PhoneCareDiag:         LinearLayoutV w=656 h=413 params=(-1,-2) vis=0 
+11-12 15:06:43.146  3098  3098 I PhoneCareDiag:           LinearLayoutH w=592 h=111 params=(-1,-2) vis=0 
+11-12 15:06:43.146  3098  3098 I PhoneCareDiag:             LinearLayoutV w=280 h=111 params=(0,-2) vis=0 
+11-12 15:06:43.146  3098  3098 I PhoneCareDiag:             LinearLayoutV w=280 h=111 params=(0,-2) vis=0 
+11-12 15:06:43.147  3098  3098 I PhoneCareDiag:           View w=1 h=24 params=(1,24) vis=0 
+11-12 15:06:43.147  3098  3098 I PhoneCareDiag:           LinearLayoutH w=592 h=79 params=(-1,-2) vis=0 
+11-12 15:06:43.147  3098  3098 I PhoneCareDiag:             LinearLayoutV w=280 h=79 params=(0,-2) vis=0 
+11-12 15:06:43.147  3098  3098 I PhoneCareDiag:             LinearLayoutV w=280 h=79 params=(0,-2) vis=0 
+11-12 15:06:43.147  3098  3098 I PhoneCareDiag:           View w=1 h=24 params=(1,24) vis=0 
+11-12 15:06:43.147  3098  3098 I PhoneCareDiag:           LinearLayoutH w=592 h=111 params=(-1,-2) vis=0 
+11-12 15:06:43.147  3098  3098 I PhoneCareDiag:             LinearLayoutV w=280 h=111 params=(0,-2) vis=0 
+11-12 15:06:43.148  3098  3098 I PhoneCareDiag:             LinearLayoutV w=280 h=111 params=(0,-2) vis=0 
+11-12 15:06:43.148  3098  3098 I PhoneCareDiag:         TextView w=656 h=72 params=(-1,-2) vis=0 DIAGNOSTICS
+11-12 15:06:43.148  3098  3098 I PhoneCareDiag:         LinearLayoutH w=656 h=118 params=(-1,-2) vis=0 
+11-12 15:06:43.148  3098  3098 I PhoneCareDiag:           LinearLayoutV w=579 h=70 params=(0,-2) vis=0 
+11-12 15:06:43.148  3098  3098 I PhoneCareDiag:             TextView w=579 h=38 params=(-1,-2) vis=0 Battery & health
+11-12 15:06:43.148  3098  3098 I PhoneCareDiag:             TextView w=579 h=32 params=(-1,-2) vis=0 Capacity, temperature, c
+11-12 15:06:43.149  3098  3098 I PhoneCareDiag:           TextView w=13 h=59 params=(-2,-2) vis=0 ›
+11-12 15:06:43.149  3098  3098 I PhoneCareDiag:         LinearLayoutH w=656 h=118 params=(-1,-2) vis=0 
+11-12 15:06:43.149  3098  3098 I PhoneCareDiag:           LinearLayoutV w=579 h=70 params=(0,-2) vis=0 
+11-12 15:06:43.149  3098  3098 I PhoneCareDiag:             TextView w=579 h=38 params=(-1,-2) vis=0 Storage
+11-12 15:06:43.149  3098  3098 I PhoneCareDiag:             TextView w=579 h=32 params=(-1,-2) vis=0 Free space and cache
+11-12 15:06:43.149  3098  3098 I PhoneCareDiag:           TextView w=13 h=59 params=(-2,-2) vis=0 ›
+11-12 15:06:43.150  3098  3098 I PhoneCareDiag:         LinearLayoutH w=656 h=118 params=(-1,-2) vis=0 
+11-12 15:06:43.152  3098  3098 I PhoneCareDiag:           LinearLayoutV w=579 h=70 params=(0,-2) vis=0 
+11-12 15:06:43.152  3098  3098 I PhoneCareDiag:             TextView w=579 h=38 params=(-1,-2) vis=0 Display
+11-12 15:06:43.152  3098  3098 I PhoneCareDiag:             TextView w=579 h=32 params=(-1,-2) vis=0 Resolution, refresh rate
+11-12 15:06:43.152  3098  3098 I PhoneCareDiag:           TextView w=13 h=59 params=(-2,-2) vis=0 ›
+11-12 15:06:43.153  3098  3098 I PhoneCareDiag:         LinearLayoutH w=656 h=118 params=(-1,-2) vis=0 
+11-12 15:06:43.154  3098  3098 I PhoneCareDiag:           LinearLayoutV w=579 h=70 params=(0,-2) vis=0 
+11-12 15:06:43.154  3098  3098 I PhoneCareDiag:             TextView w=579 h=38 params=(-1,-2) vis=0 Touch
+11-12 15:06:43.154  3098  3098 I PhoneCareDiag:             TextView w=579 h=32 params=(-1,-2) vis=0 Pointer test and multi-t
+11-12 15:06:43.154  3098  3098 I PhoneCareDiag:           TextView w=13 h=59 params=(-2,-2) vis=0 ›
+11-12 15:06:43.154  3098  3098 I PhoneCareDiag:         Button w=656 h=96 params=(-1,-2) vis=0 All diagnostics
+11-12 15:06:43.154  3098  3098 I PhoneCareDiag:         TextView w=656 h=72 params=(-1,-2) vis=0 RECENT RESULTS
+11-12 15:06:43.156  3098  3098 I PhoneCareDiag:         LinearLayoutV w=656 h=141 params=(-1,-2) vis=0 
+11-12 15:06:43.156  3098  3098 I PhoneCareDiag:           TextView w=592 h=77 params=(-1,-2) vis=0 No saved runs yet. A ful
+11-12 15:06:43.157  3098  3098 I PhoneCareDiag:         TextView w=656 h=72 params=(-1,-2) vis=0 SUGGESTED NEXT STEPS
+11-12 15:06:43.157  3098  3098 I PhoneCareDiag:         LinearLayoutV w=656 h=327 params=(-1,-2) vis=0 
+11-12 15:06:43.157  3098  3098 I PhoneCareDiag:           TextView w=592 h=38 params=(-1,-2) vis=0 No fault found in this r
+11-12 15:06:43.157  3098  3098 I PhoneCareDiag:           TextView w=592 h=153 params=(-1,-2) vis=0 That does not prove ther
+11-12 15:06:43.157  3098  3098 I PhoneCareDiag:           TextView w=592 h=72 params=(-1,-2) vis=0 Evidence: Latency not me
+11-12 15:06:43.157  3098  3098 I PhoneCareDiag:         LinearLayoutV w=656 h=371 params=(-1,-2) vis=0 
+11-12 15:06:43.157  3098  3098 I PhoneCareDiag:           TextView w=592 h=38 params=(-1,-2) vis=0 What this app will not d
+11-12 15:06:43.158  3098  3098 I PhoneCareDiag:           TextView w=592 h=229 params=(-1,-2) vis=0 It does not increase mod
+11-12 15:06:43.158  3098  3098 I PhoneCareDiag:           TextView w=592 h=40 params=(-1,-2) vis=0 Evidence: Product bounda
+11-12 15:06:43.158  3098  3098 I PhoneCareDiag:         TextView w=656 h=32 params=(-1,-2) vis=0 8 guides available in Mo
+11-12 15:06:43.158  3098  3098 I PhoneCareDiag:   LinearLayoutH w=720 h=120 params=(-1,-2) vis=0 
+11-12 15:06:43.159  3098  3098 I PhoneCareDiag:     LinearLayoutV w=137 h=96 params=(0,-2) vis=0 
+11-12 15:06:43.159  3098  3098 I PhoneCareDiag:       TextView w=137 h=32 params=(-1,-2) vis=0 Home
+11-12 15:06:43.159  3098  3098 I PhoneCareDiag:       View w=32 h=6 params=(32,6) vis=0 
+11-12 15:06:43.159  3098  3098 I PhoneCareDiag:     LinearLayoutV w=137 h=96 params=(0,-2) vis=0 
+11-12 15:06:43.159  3098  3098 I PhoneCareDiag:       TextView w=137 h=32 params=(-1,-2) vis=0 Diagnose
+11-12 15:06:43.159  3098  3098 I PhoneCareDiag:       View w=32 h=6 params=(32,6) vis=4 
+11-12 15:06:43.159  3098  3098 I PhoneCareDiag:     LinearLayoutV w=138 h=96 params=(0,-2) vis=0 
+11-12 15:06:43.160  3098  3098 I PhoneCareDiag:       TextView w=138 h=32 params=(-1,-2) vis=0 Network
+11-12 15:06:43.160  3098  3098 I PhoneCareDiag:       View w=32 h=6 params=(32,6) vis=4 
+11-12 15:06:43.161  3098  3098 I PhoneCareDiag:     LinearLayoutV w=138 h=96 params=(0,-2) vis=0 
+11-12 15:06:43.161  3098  3098 I PhoneCareDiag:       TextView w=138 h=32 params=(-1,-2) vis=0 Results
+11-12 15:06:43.161  3098  3098 I PhoneCareDiag:       View w=32 h=6 params=(32,6) vis=4 
+11-12 15:06:43.162  3098  3098 I PhoneCareDiag:     LinearLayoutV w=138 h=96 params=(0,-2) vis=0 
+11-12 15:06:43.162  3098  3098 I PhoneCareDiag:       TextView w=138 h=32 params=(-1,-2) vis=0 More
+11-12 15:06:43.162  3098  3098 I PhoneCareDiag:       View w=32 h=6 params=(32,6) vis=4 

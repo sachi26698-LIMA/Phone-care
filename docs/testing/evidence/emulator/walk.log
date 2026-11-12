@@ -1,6 +1,6 @@
 ++ date -u +%FT%TZ
-+ echo '== provisioning 2026-11-12T14:47:37Z'
-== provisioning 2026-11-12T14:47:37Z
++ echo '== provisioning 2026-11-12T15:05:06Z'
+== provisioning 2026-11-12T15:05:06Z
 + echo SDK=/usr/local/lib/android/sdk
 SDK=/usr/local/lib/android/sdk
 + adb version
@@ -21,8 +21,8 @@ Loading local repository...                                                     
 Auto-selecting single ABI x86_64
 + echo '--- avdmanager list ---'
 --- avdmanager list ---
-+ head -12
 + avdmanager list avd
++ head -12
 Available Android Virtual Devices:
     Name: walk
   Device: pixel_5 (Google)
@@ -46,13 +46,13 @@ walk
 + adb start-server
 * daemon not running; starting now at tcp:5037
 * daemon started successfully
-+ echo 'emulator pid 2709'
-emulator pid 2709
++ echo 'emulator pid 2664'
+emulator pid 2664
 + nohup /usr/local/lib/android/sdk/emulator/emulator -avd walk -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -no-metrics -camera-back none -camera-front none
 ++ seq 1 60
 + for i in $(seq 1 60)
-+ grep -q 'emulator.*device'
 + adb devices
++ grep -q 'emulator.*device'
 + sleep 5
 + for i in $(seq 1 60)
 + adb devices
@@ -123,14 +123,14 @@ INFO         |   androidboot.vbmeta.digest=451e57ed688ff746d2c636d52169ade253e2b
 INFO         |   androidboot.vbmeta.hash_alg=sha256
 INFO         |   androidboot.vbmeta.size=6656
 INFO         |   androidboot.veritymode=enforcing
-WARNING: cannnot unmap ptr 0x7f13e0c01000 as it is in the protected range from 0x7f1340c00000 to 0x7f13e0e00000
+WARNING: cannnot unmap ptr 0x7ff4a9401000 as it is in the protected range from 0x7ff409400000 to 0x7ff4a9600000
 INFO         | Monitoring duration of emulator setup.
 WARNING      | The emulator now requires a signed jwt token for gRPC access! Use the -grpc flag if you really want an open unprotected grpc port
 INFO         | Using security allow list from: /usr/local/lib/android/sdk/emulator/lib/emulator_access.json
-INFO         | The active JSON Web Key Sets can be found here: /run/user/1001/avd/running/2709/jwks/5c617ff8-5818-4889-9332-2e673c38a962/active.jwk
-INFO         | Scanning /run/user/1001/avd/running/2709/jwks/5c617ff8-5818-4889-9332-2e673c38a962 for jwk keys.
+INFO         | The active JSON Web Key Sets can be found here: /run/user/1001/avd/running/2664/jwks/81d45e40-5a28-431a-ae4e-3d8bbba266ad/active.jwk
+INFO         | Scanning /run/user/1001/avd/running/2664/jwks/81d45e40-5a28-431a-ae4e-3d8bbba266ad for jwk keys.
 INFO         | Started GRPC server at 127.0.0.1:8554, security: Local, auth: +token
-INFO         | Advertising in: /run/user/1001/avd/running/pid_2709.ini
+INFO         | Advertising in: /run/user/1001/avd/running/pid_2664.ini
 INFO         | Activated packet streamer for bluetooth emulation
 INFO         | Successfully initialized netsim WiFi
 INFO         | Setting display: 0 configuration to: 1080x2340, dpi: 440x440 
@@ -139,13 +139,13 @@ INFO         | emulatorSetupEnvironment: Environment scene is not required
 USER_INFO    | Emulator is performing a full startup. This may take upto two minutes, or more.
 WARNING      | Failed to process .ini file /home/runner/.android/emu-update-last-check.ini for reading.
 WARNING      | Failed to process .ini file /home/runner/.android/emu-update-last-check.ini for reading.
-INFO         | Boot completed in 37647 ms
+INFO         | Boot completed in 39367 ms
 INFO         | Increasing screen off timeout, logcat buffer size to 2M.
 cwd=/home/runner/work/Phone-care/Phone-care python=3.12.3 apk=app/build/outputs/apk/debug/app-debug.apk
 adb=Android Debug Bridge version 1.0.41
 [PASS] Emulator finished booting — 1
-[PASS] Install APK — 1052578 bytes, runtime permissions granted
+[PASS] Install APK — 1053858 bytes, runtime permissions granted
 [PASS] Launch MainActivity — Complete
-foreground: mCurrentFocus=Window{555c3bd u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}
-[FAIL] Dashboard renders — foreground=mCurrentFocus=Window{555c3bd u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}; nodes: PhoneCare | native
-::error title=UI walk::Dashboard renders — foreground=mCurrentFocus=Window{555c3bd u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}; nodes: PhoneCare | native
+foreground: mCurrentFocus=Window{f345b5a u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}
+[FAIL] Dashboard renders — foreground=mCurrentFocus=Window{f345b5a u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}; nodes: PhoneCare | native
+::error title=UI walk::Dashboard renders — foreground=mCurrentFocus=Window{f345b5a u0 app.phonecare.diagnostics/app.phonecare.diagnostics.MainActivity}; nodes: PhoneCare | native
