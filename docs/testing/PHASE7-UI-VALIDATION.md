@@ -17,7 +17,9 @@ from a command that was actually executed.
 | Screenshots | `docs/testing/evidence/emulator/*.png` (this directory) |
 | Failure dumps | `docs/testing/evidence/emulator/fail-*.xml` |
 | Website screenshots | `docs/testing/evidence/website/*.png` (390x844, plus 768x1024) |
-| Run | {{RUN_URL}} |
+| Run | [43276811143](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43276811143) — success |
+| APK under test | `app-debug.apk`, **1,056,206 bytes**, sha256 `27e97ef5a882581b8a32e7c5f5861172f31f5b55044ed8a89698d754ef56f3bb` |
+| APK artifact | [phonecare-debug-apk](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43276811143/artifacts) (expires after 14 days) |
 
 ## 1. What the walk does
 
@@ -44,14 +46,28 @@ bottom navigation, and fails the job on any error. It then:
 
 | | |
 | --- | --- |
-| Steps | **{{STEPS}}** |
-| Passed | **{{PASS}}** |
-| Failed | **{{FAIL}}** |
-| Notes (non-blocking) | {{SOFT}} |
-| Skipped | {{SKIP}} |
-| Screenshots | {{SHOTS}} |
+| Steps | **59** |
+| Passed | **57** |
+| Failed | **0** |
+| Notes (non-blocking) | 2 |
+| Skipped | 0 |
+| Screenshots | 32 |
 | Crashes in logcat | 0 |
-| Job conclusion | {{CONCLUSION}} |
+| Job conclusion | **success** |
+
+| Area | Checks | Result |
+| --- | --- | --- |
+| Boot, install, launch | 4 | pass |
+| Five tabs | 5 | pass |
+| Eight device screens + back | 16 | pass |
+| Five network screens + back | 10 | pass |
+| Five More screens + back | 10 | pass |
+| Guide detail + back | 2 | pass |
+| Guide search | 1 | pass |
+| Permission prompts → grant → cellular read | 3 | pass |
+| Full check, export, settings | 3 | pass |
+| Dark mode, tablet width, logcat, process alive | 4 | pass |
+| Notes (non-blocking) | 2 | informational |
 
 Covered: installation, launch, five tabs, all 24 screens, back navigation from every screen,
 guide search, permission prompt → grant → read, full check, export sheet, settings save, dark mode,
@@ -130,6 +146,13 @@ edge. The bar is now capped to the same column.
 The site leads with a PC mark beside the wordmark, and its home hero uses the product's own
 headline. The app had the wordmark only and internal framing ("The same diagnostics as the
 website..."). Both now match; the hero reads *Check your real health.*
+
+### 3.11 Search results were hidden behind the keyboard
+
+The final failing check is worth keeping as a lesson. With `wifi` typed, the page showed the
+heading, the subtitle, the field — and then the keyboard. The matches existed, below the fold, so
+search looked broken to anyone using it. The heading and subtitle are now hidden as soon as the
+field has a query, which lifts the first match above the keyboard (`23-guides-search.png`).
 
 ## 4. Real measurements taken on the emulator
 
@@ -210,8 +233,10 @@ Screen-by-screen mapping: `docs/parity/ANDROID-PARITY-MATRIX.md`.
 4. No CPU die temperature, no TX power, no per-app usage, no Wi-Fi channel width without a scan —
    unchanged, each stated in the UI.
 5. Screenshot comparison is human review of committed PNGs, not a pixel-diff harness.
-6. The walk covers every screen and the main flows, not every secondary control.
-7. The assistant is deterministic on-device; the website's optional proxied model is not replicated.
+6. The keyboard-open layout was only exercised on the Guides screen; other screens with text input
+   (Assistant, Settings, Survey room name) were opened but not typed into.
+7. The walk covers every screen and the main flows, not every secondary control.
+8. The assistant is deterministic on-device; the website's optional proxied model is not replicated.
 
 ## 9. Recommended next actions
 

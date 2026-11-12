@@ -1,5 +1,14 @@
 # Physical Android device — validation report
 
+> **Status: NOT RUN on a physical handset.** Phase 7 validated the app on an Android 14 emulator
+> instead — 57 of 59 checks passed with 32 screenshots, including the permission flow, a real
+> `TelephonyManager` read, export and tablet width. See
+> **[PHASE7-UI-VALIDATION.md](PHASE7-UI-VALIDATION.md)** and
+> `docs/testing/evidence/emulator/`. Everything below still has to be done on real hardware:
+> modem accuracy, thermals, touch hardware, performance and permission surprises are exactly what
+> an emulator cannot prove.
+
+
 **Status: NOT RUN.** No physical phone has executed this build. Every result cell below is
 `NOT RUN` until a tester fills it with something they actually observed.
 

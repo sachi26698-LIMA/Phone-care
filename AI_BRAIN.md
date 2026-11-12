@@ -972,6 +972,15 @@ Modem metrics (LTE RSRP/RSRQ/RSSNR/RSSI/band/TA, NR SS-RSRP/RSRQ/SINR/PCI), dual
 Wi-Fi gateway/DNS/link speed, transition counting, battery electricals, storage volumes, thermal
 status, refresh-rate modes, HDR types, per-pointer touch tracing, permission state machine.
 
+### 16.4b What running it changed
+
+Phase 7 ran the app on an emulator and found ten real defects, all fixed: an app-bar spacer that
+swallowed every screen (a `wrap_content` `View` expands under an AT_MOST spec), duplicated page
+titles, no in-app back control, a floating grey back box, a platform-grey status bar, dead guide
+cards, two competing primary buttons, guide search that could not find "Wi-Fi" from "wifi", search
+results hidden behind the keyboard, and a bottom navigation that stretched edge to edge on tablets.
+The lesson recorded in `Layout.flexSpacer`: a bare `View` is never a safe spacer.
+
 ### 16.5 Honest gaps
 
 - No device or emulator run: no screenshot comparison at equivalent sizes has been performed.
@@ -984,9 +993,11 @@ status, refresh-rate modes, HDR types, per-pointer touch tracing, permission sta
 
 | Check | Result |
 | --- | --- |
-| Kotlin compile (all sources) | 84 classes, 0 warnings |
-| Engine checks | 27/27 |
-| Contract + parity | 67/67 |
-| Website typecheck / build | pending re-run in this round |
-| APK | rebuilt by CI, artifact `phonecare-debug-apk` |
-| Device walkthrough | **NOT RUN** |
+| Kotlin compile (all sources) | clean |
+| Engine checks | **30/30** |
+| Contract + parity | **67/67** |
+| Parity audit | 20 routes, 24 screens, 6 API routes, all accounted for |
+| Website typecheck / build | clean |
+| APK | 1,056,206 bytes, sha256 `27e97ef5…ef56f3bb`, run 43276811143 |
+| Emulator walkthrough | **57/59 checks pass, 0 fail, 32 screenshots** (API 34, 360x640 dp) |
+| Physical device walkthrough | **NOT RUN** — no handset here |

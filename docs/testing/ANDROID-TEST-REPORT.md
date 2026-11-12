@@ -114,6 +114,22 @@ Workflow: `.github/workflows/android-debug-apk.yml`. Latest run on `arena/45529a
 - pull-request run: [43191704293](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43191704293) — **success**
 - every step green: checkout → JDK 17 → locate SDK → install `platforms;android-35` + `build-tools;35.0.0` → Gradle 8.9 → **unit tests** → **assembleDebug** → **verify** → upload
 
+### Phase 7 emulator validation
+
+Run [43276811143](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43276811143) — **success**
+
+| Field | Value |
+| --- | --- |
+| Walk steps | **59: 57 pass, 0 fail**, 2 informational notes |
+| Screenshots | 32 (`docs/testing/evidence/emulator/`) |
+| APK | 1,056,206 bytes, sha256 `27e97ef5…ef56f3bb` |
+| Device | API 34 x86_64 emulator, 360x640 dp — **not a physical handset** |
+| Engine checks | 30/30 |
+| Crashes in logcat | 0 |
+
+Ten defects were found and fixed by running the app; the details, the evidence and the remaining
+limitations are in **[PHASE7-UI-VALIDATION.md](PHASE7-UI-VALIDATION.md)**.
+
 ### Phase 6 parity build
 
 Run [43201262739](https://github.com/sachi26698-LIMA/Phone-care/actions/runs/43201262739) — **success**
