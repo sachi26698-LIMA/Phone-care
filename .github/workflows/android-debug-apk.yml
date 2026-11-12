@@ -96,29 +96,47 @@ jobs:
 
       - name: Verify the APK
         run: |
-          set -euo pipefail
+          set -uo pipefail
           : "${ANDROID_HOME:?Android SDK not configured}"
+          BT="$ANDROID_HOME/build-tools/35.0.0"
           APK=app/build/outputs/apk/debug/app-debug.apk
-          test -f "$APK" || { echo "no APK produced"; exit 1; }
+          if [ ! -f "$APK" ]; then
+            echo "::error::no APK at $APK"
+            ls -R app/build/outputs || true
+            exit 1
+          fi
 
           ls -l "$APK"
           sha256sum "$APK" | tee apk-sha256.txt
 
-          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging "$APK" | tee apk-badging.txt
-          grep -q "package: name='app.phonecare.diagnostics'" apk-badging.txt
-          grep -q "sdkVersion:'26'" apk-badging.txt
-          grep -q "targetSdkVersion:'35'" apk-badging.txt
-          grep -q "launchable-activity: name='app.phonecare.diagnostics.MainActivity'" apk-badging.txt
+          "$BT/aapt2" dump badging "$APK" | tee apk-badging.txt || true
+          unzip -l "$APK" | tee apk-contents.txt || true
+          "$BT/apksigner" verify --verbose --print-certs "$APK" > apk-signature.txt 2>&1 || true
+          cat apk-signature.txt
 
-          unzip -l "$APK" | tee apk-contents.txt
-          grep -q "classes.dex" apk-contents.txt
-          grep -q "resources.arsc" apk-contents.txt
-
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" \
-            | tee apk-signature.txt
-          grep -q "Verified using v2 scheme" apk-signature.txt
+          status=0
+          expect() { # file, fixed-pattern, label
+            if grep -qF -- "$2" "$1"; then
+              echo "ok: $3"
+            else
+              echo "::error::APK verification failed: $3 not found in $1"
+              echo "::notice::$3 pattern was: $2"
+              sed -n '1,40p' "$1" | while IFS= read -r line; do echo "::notice::  $line"; done
+              status=1
+            fi
+          }
+          expect apk-badging.txt "package: name='app.phonecare.diagnostics'" "package name"
+          expect apk-badging.txt "sdkVersion:'26'" "minSdk 26"
+          expect apk-badging.txt "targetSdkVersion:'35'" "targetSdk 35"
+          expect apk-badging.txt "launchable-activity: name='app.phonecare.diagnostics.MainActivity'" "launcher activity"
+          expect apk-contents.txt "classes.dex" "classes.dex in the archive"
+          expect apk-contents.txt "resources.arsc" "resources.arsc in the archive"
+          expect apk-signature.txt "Verified using v2 scheme (APK Signature Scheme v2): true" "v2 signature"
+          expect apk-signature.txt "Verifies" "apksigner overall verdict"
+          exit "$status"
 
       - name: Upload the APK
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: phonecare-debug-apk
@@ -128,7 +146,7 @@ jobs:
             native/android/apk-badging.txt
             native/android/apk-contents.txt
             native/android/apk-signature.txt
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
       - name: Upload unit test report
