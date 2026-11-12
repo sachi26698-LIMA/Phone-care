@@ -56,6 +56,12 @@ class MainActivity : Activity(), Host {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        @Suppress("DEPRECATION")
+        window.statusBarColor = Tokens.SURFACE
+        @Suppress("DEPRECATION")
+        window.decorView.systemUiVisibility =
+            window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+
         state = AppState(applicationContext)
         permissions = PermissionManager(this)
 
@@ -137,32 +143,38 @@ class MainActivity : Activity(), Host {
                 LinearLayout.LayoutParams.WRAP_CONTENT,
             )
         }
+        backChip = Ui.text(this, "\u2039 Back", Type.LABEL, Tokens.VIOLET, bold = true).apply {
+            background = Tokens.pill(Ui.alpha(Tokens.VIOLET, 0.12f))
+            setPadding(
+                Tokens.dp(this@MainActivity, 12),
+                Tokens.dp(this@MainActivity, 6),
+                Tokens.dp(this@MainActivity, 12),
+                Tokens.dp(this@MainActivity, 6),
+            )
+            minimumHeight = Tokens.dp(this@MainActivity, 40)
+            minimumWidth = Tokens.dp(this@MainActivity, 72)
+            gravity = Gravity.CENTER
+            isClickable = true
+            contentDescription = "Go back"
+            setOnClickListener { back() }
+            visibility = View.GONE
+            tag = "back"
+        }
+        top.addView(backChip)
         top.addView(
             Ui.text(this, "PhoneCare", Type.SECTION, Tokens.VIOLET, bold = true).apply {
                 setLetterSpacing(0.02f)
+                setPadding(Tokens.dp(this@MainActivity, Tokens.SPACE_S), 0, 0, 0)
             },
         )
         top.addView(Layout.flexSpacer(this))
         top.addView(Ui.badge(this, "native", Ui.alpha(Tokens.VIOLET, 0.12f), Tokens.VIOLET))
         bar.addView(top)
 
-        val titleRow = Layout.row(this)
-        backChip = Ui.text(this, "\u2039 Back", Type.LABEL, Tokens.VIOLET, bold = true).apply {
-            setPadding(0, Tokens.dp(this@MainActivity, Tokens.SPACE_S), Tokens.dp(this@MainActivity, Tokens.SPACE_M), Tokens.dp(this@MainActivity, Tokens.SPACE_S))
-            isClickable = true
-            minimumHeight = Tokens.dp(this@MainActivity, 44)
-            gravity = Gravity.CENTER_VERTICAL
-            contentDescription = "Go back"
-            setOnClickListener { back() }
-            visibility = View.GONE
-            tag = "back"
-        }
-        titleRow.addView(backChip)
         titleView = Ui.title(this, "Dashboard").apply {
             setPadding(0, Tokens.dp(this@MainActivity, Tokens.SPACE_XS), 0, 0)
         }
-        titleRow.addView(titleView)
-        bar.addView(titleRow)
+        bar.addView(titleView)
 
         statusView = Ui.text(this, "", Type.SMALL, Tokens.TEXT_MUTED).apply {
             setPadding(0, Tokens.dp(this@MainActivity, 2), 0, 0)

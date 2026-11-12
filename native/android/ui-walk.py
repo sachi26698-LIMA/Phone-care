@@ -149,6 +149,24 @@ def tap(text: str, *, scroll: int = 0, bottom_most: bool = False, above_nav: boo
     return True
 
 
+def tap_edit_text() -> bool:
+    """Focus the first EditText on screen, by class rather than by placeholder text."""
+    try:
+        root = ET.fromstring(dump())
+    except ET.ParseError:
+        return False
+    for node in root.iter("node"):
+        if (node.get("class") or "").endswith("EditText"):
+            m = re.match(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", node.get("bounds") or "")
+            if not m:
+                continue
+            x1, y1, x2, y2 = (int(v) for v in m.groups())
+            adb("shell", "input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
+            time.sleep(1.0)
+            return True
+    return False
+
+
 def back() -> None:
     adb("shell", "input", "keyevent", "KEYCODE_BACK")
     time.sleep(1.0)
@@ -365,18 +383,20 @@ def main() -> int:
         record("fail", "Guides opens from More", "row missing")
 
     # --- guides search ---------------------------------------------------------------
-    if tap("Search guides, symptoms or categories") or tap("Search"):
+    if tap_edit_text():
         adb("shell", "input", "text", "wifi")
-        time.sleep(1.5)
+        time.sleep(1.8)
         xml = dump()
-        filtered = any("wi-fi" in t.lower() or "wifi" in t.lower() for t, *_ in nodes(xml))
-        record("pass" if filtered else "fail", "Guide search filters results",
-               "typed 'wifi'" if filtered else "no matching result after typing")
+        typed = any("wifi" in t.lower() for t, *_ in nodes(xml))
+        results = [t for t, *_ in nodes(xml) if "wi-fi" in t.lower()]
+        record("pass" if typed and results else "fail", "Guide search filters results",
+               f"field accepted 'wifi', Wi-Fi guide still listed: {results[0][:40]!r}" if typed and results
+               else f"field text present={typed}, matching guide present={bool(results)}")
+        shot("23-guides-search")
         for _ in range(4):
             adb("shell", "input", "keyevent", "KEYCODE_DEL")
-        shot("23-guides-search")
     else:
-        record("fail", "Guide search field present", "search input not found")
+        record("fail", "Guide search field present", "no EditText on the Guides screen")
 
     # --- permission flow + full check ------------------------------------------------
     tap("Home", bottom_most=True)
